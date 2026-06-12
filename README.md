@@ -8,6 +8,7 @@ A Playwright-based crawler that maps AEM component usage across Canon shop and c
 | Report | Description |
 |---|---|
 | [usa-pdp.html](usa-pdp.html) | All PDPs, specifically the "Overview" tab content |
+| [usa-business.html](usa-business.html) | All "/business" pages |
 | [usa-consumer-1.html](usa-consumer-1.html) | Content pages — `/newsroom` and `/learning` excluded |
 | [usa-consumer-2.html](usa-consumer-2.html) | Content pages — `/newsroom` excluded |
 | [usa-learning.html](usa-learning.html) | Learning pages — random sample of 80 |

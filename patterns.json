@@ -60,5 +60,13 @@
     "sources": [
       { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
     ]
+  },
+  "usa-business": {
+    "label": "USA — Business",
+    "sitemap": "https://www.usa.canon.com/content/canon/en.sitemap.business.xml",
+    "url_filter": "/business",
+    "sources": [
+      { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
+    ]
   }
 }
