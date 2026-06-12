@@ -1,6 +1,6 @@
 {
-  "usa-shop": {
-    "label": "USA — Shop PDPs",
+  "usa-pdp": {
+    "label": "USA — PDPs",
     "sitemap": "https://www.usa.canon.com/shop/media/sitemap/sitemap.xml",
     "url_filter": "/shop/p/",
     "container": "#pdp-description",
@@ -8,8 +8,8 @@
     "mode": "children",
     "pre_click": ["#tab-description"]
   },
-  "ca-shop": {
-    "label": "CA — Shop PDPs",
+  "ca-pdp": {
+    "label": "CA — PDPs",
     "sitemap": "https://shop.canon.ca/sitemap.xml",
     "url_filter": "en_ca/p/",
     "container": "#overview-product",
@@ -27,10 +27,20 @@
     "component_root": ".pagebuilder-column-group",
     "mode": "elements"
   },
-  "usa-content": {
-    "label": "USA — Content Pages",
+  "usa-consumer-1": {
+    "label": "USA — Consumer - Part 1",
     "sitemap": "https://www.usa.canon.com/content/canon/en.sitemap.consumer.xml",
     "url_filter": "/",
+    "url_exclude": ["/newsroom", "/learning"],
+    "sources": [
+      { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
+    ]
+  },
+  "usa-consumer-2": {
+    "label": "USA — Consumer - Part 2",
+    "sitemap": "https://www.usa.canon.com/content/canon/en.sitemap.consumer-1.xml",
+    "url_filter": "/",
+    "url_exclude": ["/newsroom"],
     "sources": [
       { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
     ]

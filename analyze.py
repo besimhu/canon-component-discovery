@@ -23,6 +23,7 @@ Usage:
 import argparse
 import asyncio
 import json
+import random
 import shutil
 from collections import defaultdict
 from datetime import datetime
@@ -61,8 +62,8 @@ BROWSER_UA  = (
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/124.0.0.0 Safari/537.36"
 )
-SKIP_SCREENSHOT  = {"title"}
-HIDE_SELECTORS   = ["#usntA40Toggle", "#Chat_Image_Button", "#onetrust-consent-sdk", ".wrap-media-product-info", ".page-anchors-top", ".tabsContainer", ".product.media", ".product-info-main.pdp-info", "#embedded-messaging", ".inc_pdp_block"]
+SKIP_SCREENSHOT  = {"title", "breadcrumb"}
+HIDE_SELECTORS   = ["#usntA40Toggle", "#Chat_Image_Button", "#onetrust-consent-sdk", ".wrap-media-product-info", ".page-anchors-top", ".tabsContainer", ".product.media", ".product-info-main.pdp-info", "#embedded-messaging", ".inc_pdp_block", ".header.aem-GridColumn"]
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +148,10 @@ def _locs(xml: str) -> list[str]:
     return [u for u in locs if u.startswith("http")]
 
 
-async def _collect_pdp_urls(context, limit: int | None, sitemap_url: str, url_filter: str) -> list[str]:
+async def _collect_pdp_urls(
+    context, limit: int | None, sitemap_url: str,
+    url_filter: str, url_exclude: list[str] | None = None,
+) -> list[str]:
     """Fetch sitemap(s) using an existing browser context and return matching URLs."""
     print(f"Fetching sitemap: {sitemap_url} …")
     xml = await _fetch_text(context, sitemap_url)
@@ -170,7 +174,14 @@ async def _collect_pdp_urls(context, limit: int | None, sitemap_url: str, url_fi
     else:
         all_urls = _locs(xml)
 
-    pdp_urls = [u for u in all_urls if url_filter in u]
+    def _keep(u: str) -> bool:
+        if url_filter not in u:
+            return False
+        if url_exclude and any(ex in u for ex in url_exclude):
+            return False
+        return True
+
+    pdp_urls = [u for u in all_urls if _keep(u)]
     seen: set[str] = set()
     unique: list[str] = []
     for u in pdp_urls:
@@ -178,8 +189,13 @@ async def _collect_pdp_urls(context, limit: int | None, sitemap_url: str, url_fi
             seen.add(u)
             unique.append(u)
 
-    using = len(unique) if limit is None else min(limit, len(unique))
-    print(f"\n  {len(unique)} unique /shop/p/ URLs — using {using}\n")
+    if url_exclude:
+        print(f"  Excluded patterns: {', '.join(url_exclude)}")
+    if limit is None:
+        print(f"\n  {len(unique)} unique {url_filter} URLs\n")
+    else:
+        using = min(limit, len(unique))
+        print(f"\n  {len(unique)} unique {url_filter} URLs — using {using}\n")
     return unique if limit is None else unique[:limit]
 
 
@@ -328,7 +344,9 @@ async def collect_and_crawl(
     *,
     sitemap_url: str = "",
     url_filter: str = "/shop/p/",
+    url_exclude: list[str] | None = None,
     limit: int | None = 20,
+    sample: int | None = None,
     url_override: str = "",
     pre_click: list[str] | None = None,
 ) -> tuple[list[str], list[dict]]:
@@ -346,7 +364,12 @@ async def collect_and_crawl(
             urls = [url_override.strip()]
             print(f"Single-URL mode: {urls[0]}\n")
         else:
-            urls = await _collect_pdp_urls(context, limit, sitemap_url, url_filter)
+            if sample is not None:
+                all_urls = await _collect_pdp_urls(context, None, sitemap_url, url_filter, url_exclude)
+                urls = random.sample(all_urls, min(sample, len(all_urls)))
+                print(f"  Random sample: {len(urls)} of {len(all_urls)} URLs\n")
+            else:
+                urls = await _collect_pdp_urls(context, limit, sitemap_url, url_filter, url_exclude)
             if not urls:
                 await browser.close()
                 return [], []
@@ -824,13 +847,13 @@ def _build_html(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{region_label} — Canon Shop Component Discovery</title>
+<title>{region_label} — Canon Component Discovery</title>
 <style>{REPORT_CSS}</style>
 </head>
 <body>
 
 <div class="top-bar">
-  <h1>{region_label} — Canon Shop Component Discovery</h1>
+  <h1>{region_label} — Canon Component Discovery</h1>
   <div class="meta">Generated {now} &nbsp;·&nbsp; {total_pages} PDP pages crawled &nbsp;·&nbsp; #pdp-description &gt; .ccMaxWidth immediate children</div>
 </div>
 
@@ -898,6 +921,7 @@ Examples:
   python3 analyze.py --pattern usa-shop
   python3 analyze.py --pattern ca-shop --limit 50
   python3 analyze.py --pattern usa-shop --limit all
+  python3 analyze.py --pattern ca-shop --sample 300
   python3 analyze.py --pattern usa-shop --url https://www.usa.canon.com/shop/p/dp-v2730
   python3 analyze.py --list-patterns
         """,
@@ -910,6 +934,8 @@ Examples:
                         help="Analyze a single URL instead of fetching from the sitemap")
     parser.add_argument("--limit", default="20",
                         help="Pages to crawl: a number, or 'all' (default: 20)")
+    parser.add_argument("--sample", default="",
+                        help="Randomly sample N pages from the full sitemap URL pool")
     parser.add_argument("--out", default="",
                         help="Output HTML file (default: {pattern}.html)")
     args = parser.parse_args()
@@ -933,6 +959,7 @@ Examples:
     label       = pattern.get("label", args.pattern)
     sitemap_url = pattern["sitemap"]
     url_filter  = pattern["url_filter"]
+    url_exclude = pattern.get("url_exclude", [])
     pre_click   = pattern.get("pre_click", [])
 
     if "sources" in pattern:
@@ -956,6 +983,17 @@ Examples:
         urls, results = asyncio.run(collect_and_crawl(
             dist_dir, sources, url_override=args.url, pre_click=pre_click,
         ))
+    elif args.sample:
+        try:
+            sample = int(args.sample)
+        except ValueError:
+            print(f"ERROR: --sample must be a number, got '{args.sample}'")
+            raise SystemExit(1)
+        urls, results = asyncio.run(collect_and_crawl(
+            dist_dir, sources,
+            sitemap_url=sitemap_url, url_filter=url_filter, url_exclude=url_exclude,
+            sample=sample, pre_click=pre_click,
+        ))
     else:
         raw = args.limit.strip().lower()
         if raw == "all":
@@ -969,8 +1007,8 @@ Examples:
 
         urls, results = asyncio.run(collect_and_crawl(
             dist_dir, sources,
-            sitemap_url=sitemap_url, url_filter=url_filter, limit=limit,
-            pre_click=pre_click,
+            sitemap_url=sitemap_url, url_filter=url_filter, url_exclude=url_exclude,
+            limit=limit, pre_click=pre_click,
         ))
         if not urls:
             print(f"No URLs matching '{url_filter}' found — exiting.")

@@ -31,6 +31,9 @@ python3 analyze.py --pattern usa-shop --limit 50
 # Crawl every page in the sitemap
 python3 analyze.py --pattern usa-shop --limit all
 
+# Randomly sample 300 pages from the full sitemap URL pool
+python3 analyze.py --pattern ca-shop --sample 300
+
 # Test a single URL without touching the sitemap
 python3 analyze.py --pattern usa-shop --url https://www.usa.canon.com/shop/p/dp-v2730
 
