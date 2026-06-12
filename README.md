@@ -1,6 +1,10 @@
 # Canon Component Discovery
 
-Crawls Canon pages via sitemap, finds components inside a target container, screenshots each one, and produces a self-contained HTML report.
+A Playwright-based crawler that maps AEM component usage across Canon shop and content pages, producing a visual HTML report used to inform EDS block development via [da.live](https://da.live).
+
+## Intent
+
+The Canon shop and content pages are built on AEM with a set of reusable components. As part of migrating to Edge Delivery Services (EDS), these components need to be recreated as EDS blocks. This tool crawls live pages, identifies which AEM component classes appear (and how often), and screenshots each one in context — giving the team a concrete visual reference for every variation a block needs to handle and a frequency-based view of where to prioritise effort.
 
 ---
 
@@ -58,7 +62,8 @@ Each entry in `patterns.json` defines one crawl target.
   "url_filter": "/shop/p/",
   "container": "#pdp-description",
   "component_root": ".ccMaxWidth",
-  "mode": "children"
+  "mode": "children",
+  "pre_click": ["#tab-description"]
 }
 ```
 
@@ -71,6 +76,7 @@ Each entry in `patterns.json` defines one crawl target.
 | `component_root` | yes | CSS selector for the component wrapper(s) |
 | `mode` | no | `"children"` (default) or `"elements"` — see below |
 | `child_selectors` | no | Additional sub-elements to capture (see below) |
+| `pre_click` | no | List of CSS selectors to click before analysis — use for tabs or accordions that gate content |
 
 ### Multi-source format
 
@@ -144,3 +150,19 @@ The HTML report is self-contained (no external dependencies).
 - **Modal** — click any component row to cycle through all its screenshots with captions
 - **Pages with components** accordion — expandable list of crawled pages that had components
 - **Pages without components** accordion — expandable list of pages where nothing was found
+
+---
+
+## Crawl behaviour
+
+### Single browser session
+
+The sitemap fetch and all page crawls run inside **one browser instance**. This prevents the server from seeing two separate cold browser sessions in quick succession, which is a common bot-detection trigger. The sitemap XML is fetched with `wait_until="commit"` (response body only, no JavaScript execution) to minimise fingerprinting during that phase.
+
+### Cookie consent
+
+The OneTrust consent banner is automatically accepted on each page before any interaction or screenshotting takes place. This ensures it cannot intercept clicks on tabs or other pre-click targets.
+
+### Context refresh
+
+To prevent accumulated browser state (cookies, service workers, cached scripts) from causing pages to fail after hundreds of navigations, the browser context is replaced with a fresh one every **100 pages**. Cookie consent is re-handled automatically on the first page of each new context.
