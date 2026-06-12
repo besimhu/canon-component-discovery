@@ -52,5 +52,13 @@
     "sources": [
       { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
     ]
+  },
+  "usa-newsroom": {
+    "label": "USA — Consumer - Newsroom",
+    "sitemap": "https://www.usa.canon.com/content/canon/en.sitemap.consumer-1.xml",
+    "url_filter": "/newsroom",
+    "sources": [
+      { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
+    ]
   }
 }
