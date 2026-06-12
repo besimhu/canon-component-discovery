@@ -44,5 +44,13 @@
     "sources": [
       { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
     ]
+  },
+  "usa-learning": {
+    "label": "USA — Consumer - Learning",
+    "sitemap": "https://www.usa.canon.com/content/canon/en.sitemap.consumer.xml",
+    "url_filter": "/learning",
+    "sources": [
+      { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
+    ]
   }
 }

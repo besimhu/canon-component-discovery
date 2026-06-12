@@ -2,6 +2,19 @@
 
 A Playwright-based crawler that maps AEM component usage across Canon shop and content pages, producing a visual HTML report used to inform EDS block development via [da.live](https://da.live).
 
+## Reports
+
+### USA
+| Report | Description |
+|---|---|
+| [usa-pdp.html](usa-pdp.html) | All PDPs, specifically the "Overview" tab content |
+| [usa-consumer-1.html](usa-consumer-1.html) | Content pages — `/newsroom` and `/learning` excluded |
+| [usa-consumer-2.html](usa-consumer-2.html) | Content pages — `/newsroom` excluded |
+| [usa-learning.html](usa-learning.html) | Learning pages — random sample of 80 |
+| [usa-newsroom.html](usa-newsroom.html) | Newsroom pages — random sample of 30 |
+
+---
+
 ## Intent
 
 The Canon shop and content pages are built on AEM with a set of reusable components. As part of migrating to Edge Delivery Services (EDS), these components need to be recreated as EDS blocks. This tool crawls live pages, identifies which AEM component classes appear (and how often), and screenshots each one in context — giving the team a concrete visual reference for every variation a block needs to handle and a frequency-based view of where to prioritise effort.

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>USA — CONSUMER - PART 2 — Canon Component Discovery</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    font-size: 13px; color: #1e293b; background: #f8fafc;
+}
+.top-bar {
+    background: #0f172a; padding: 14px 32px; position: sticky; top: 0; z-index: 10;
+}
+.top-bar h1 { color: #f1f5f9; font-size: 15px; font-weight: 700; }
+.top-bar .meta { color: #64748b; font-size: 11px; margin-top: 2px; }
+.content { padding: 24px 32px; }
+
+/* Summary chips */
+.summary-chips { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.chip {
+    border-radius: 6px; padding: 8px 16px; font-weight: 600; font-size: 13px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.chip .chip-num { font-size: 22px; font-weight: 800; }
+.chip .chip-lbl { font-size: 11px; font-weight: 500; }
+
+/* Controls */
+.controls { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+.controls input {
+    padding: 5px 10px; border: 1px solid #e2e8f0;
+    border-radius: 6px; font-size: 12px; flex: 1; min-width: 200px;
+}
+.visible-count { color:#64748b; font-size:12px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; margin-bottom: 32px; }
+table {
+    width: 100%; border-collapse: collapse;
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 8px; overflow: hidden;
+}
+thead th {
+    background: #f1f5f9; text-align: left; padding: 9px 12px;
+    font-weight: 600; font-size: 12px; border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap; cursor: pointer; user-select: none;
+}
+thead th:hover { background: #e2e8f0; }
+thead th.sorted-asc::after  { content: " ▲"; font-size:10px; }
+thead th.sorted-desc::after { content: " ▼"; font-size:10px; }
+thead th.no-sort { cursor: default; }
+thead th.no-sort:hover { background: #f1f5f9; }
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+tbody tr:hover td { background: #f8fafc; }
+tbody tr.hidden { display: none; }
+td { padding: 8px 12px; vertical-align: top; }
+td.comp-cell { font-family: monospace; font-size: 12px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.total-row td { font-weight: 700; background: #f1f5f9; border-top: 2px solid #e2e8f0; }
+
+/* Coverage bar */
+.cov-wrap { display:flex; align-items:center; gap:8px; min-width:120px; }
+.cov-bar-bg { flex:1; background:#e2e8f0; border-radius:3px; height:6px; }
+.cov-bar { background:#3b82f6; border-radius:3px; height:6px; }
+.cov-pct { font-size:11px; color:#64748b; width:36px; text-align:right; flex-shrink:0; }
+
+/* Screenshot button */
+.shot-btn {
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+    border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer;
+    margin-left: 8px; white-space: nowrap; vertical-align: middle;
+}
+.shot-btn:hover { background: #dbeafe; }
+
+/* Pages detail row */
+tr.pages-row > td {
+    background: #f8fafc; padding: 6px 16px 10px 28px;
+    border-bottom: 1px solid #e2e8f0;
+}
+tr.pages-row:hover > td { background: #f1f5f9; }
+.pages-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 3px 16px; margin-top: 4px;
+}
+.page-link {
+    color: #3b82f6; text-decoration: none; font-size: 11px;
+    font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.page-link:hover { text-decoration: underline; }
+details.pages-more summary {
+    cursor: pointer; color: #64748b; font-size: 11px; user-select: none;
+}
+details.pages-more summary:hover { color: #334155; }
+details.pages-more[open] summary { margin-bottom: 4px; }
+
+/* Accordions */
+details.accordion { margin-bottom: 14px; }
+details.accordion > summary {
+    cursor: pointer; list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; background: #f1f5f9;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: #334155;
+    user-select: none;
+}
+details.accordion > summary::-webkit-details-marker { display: none; }
+details.accordion[open] > summary { border-radius: 8px 8px 0 0; border-bottom-color: #e2e8f0; }
+details.accordion > summary:hover { background: #e2e8f0; }
+details.accordion > summary::after { content: '▶'; font-size: 10px; color: #94a3b8; }
+details.accordion[open] > summary::after { content: '▼'; }
+.accordion-body {
+    border: 1px solid #e2e8f0; border-top: none;
+    border-radius: 0 0 8px 8px; padding: 14px;
+    background: #fff;
+}
+.summary-count { color: #64748b; font-size: 12px; font-weight: 500; margin-right: 8px; }
+
+/* Per-page cards */
+.page-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    margin-bottom: 10px; overflow: hidden;
+}
+.page-card-header {
+    padding: 8px 14px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0;
+    font-family: monospace; font-size: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.page-card-header a {
+    color: #1e40af; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.page-card-header a:hover { text-decoration: underline; }
+.page-card-body { padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.comp-tag {
+    background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+    border-radius: 4px; padding: 2px 8px; font-size: 11px; font-family: monospace;
+}
+.empty-links { display: flex; flex-direction: column; gap: 5px; }
+.empty-link {
+    color: #3b82f6; text-decoration: none;
+    font-size: 12px; font-family: monospace;
+}
+.empty-link:hover { text-decoration: underline; }
+
+/* Modal */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+    background: #fff; border-radius: 10px; padding: 24px 24px 18px;
+    max-width: 92vw; max-height: 92vh;
+    position: relative; min-width: 360px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.modal-close {
+    position: absolute; top: 10px; right: 14px;
+    background: none; border: none; font-size: 20px; line-height: 1;
+    cursor: pointer; color: #64748b;
+}
+.modal-close:hover { color: #0f172a; }
+.modal-title {
+    font-weight: 700; font-size: 13px; font-family: monospace;
+    color: #1e293b; padding-right: 28px;
+}
+.modal-img-wrap {
+    display: flex; align-items: center; gap: 10px; flex: 1; min-height: 0;
+}
+.modal-img {
+    flex: 1; max-width: 100%; max-height: 70vh;
+    object-fit: contain; border: 1px solid #e2e8f0; border-radius: 6px;
+    display: block; min-width: 0;
+}
+.modal-nav {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 10px 14px; cursor: pointer; font-size: 22px; color: #334155;
+    flex-shrink: 0; line-height: 1;
+}
+.modal-nav:hover:not(:disabled) { background: #e2e8f0; }
+.modal-nav:disabled { opacity: 0.25; cursor: default; }
+.modal-footer { text-align: center; }
+.modal-caption { font-family: monospace; font-size: 12px; color: #475569; }
+.modal-counter { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>USA — CONSUMER - PART 2 — Canon Component Discovery</h1>
+  <div class="meta">Generated 2026-06-11 22:10 &nbsp;·&nbsp; 29 PDP pages crawled &nbsp;·&nbsp; #pdp-description &gt; .ccMaxWidth immediate children</div>
+</div>
+
+<div class="content">
+  <div class="summary-chips">
+        <div class="chip" style="background:#eff6ff;color:#1e40af;">
+            <span class="chip-num">29</span>
+            <span class="chip-lbl">Pages Crawled</span>
+        </div>
+        <div class="chip" style="background:#f0fdf4;color:#166534;">
+            <span class="chip-num">29</span>
+            <span class="chip-lbl">Pages with Components</span>
+        </div>
+        <div class="chip" style="background:#f1f5f9;color:#334155;">
+            <span class="chip-num">24</span>
+            <span class="chip-lbl">Unique Components</span>
+        </div>
+        <div class="chip" style="background:#fef9c3;color:#854d0e;">
+            <span class="chip-num">116</span>
+            <span class="chip-lbl">Total Occurrences</span>
+        </div></div>
+
+  <div class="controls">
+    <input id="search" type="text" placeholder="Search components…">
+    <span class="visible-count" id="visible-count">24 components</span>
+  </div>
+
+  <div class="table-wrap">
+  <table id="comp-table">
+    <thead>
+      <tr>
+        <th data-col="comp">Component Class</th>
+        <th data-col="occ" class="sorted-desc" style="text-align:right">Occurrences</th>
+        <th data-col="pages" style="text-align:right">Pages</th>
+        <th class="no-sort">Coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+<tr data-comp="rte parbase" data-pages="22" data-occ="110"><td class="comp-cell">rte parbase<button class="shot-btn" onclick="openModal('rte_parbase')">&#128247; 109</button></td><td class="num">110</td><td class="num">22</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:75.9%"></div></div><span class="cov-pct">76%</span></div></td></tr>
+<tr class="pages-row" data-parent="rte parbase"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/office" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/office">/office</a>
+<a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/bulk-orders">/order-help/bulk-orders</a>
+<a href="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions">/order-help/eos-webcam-terms-and-conditions</a>
+<a href="https://www.usa.canon.com/order-help/orders-purchases" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/orders-purchases">/order-help/orders-purchases</a>
+<a href="https://www.usa.canon.com/order-help/returns-and-exchanges" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/returns-and-exchanges">/order-help/returns-and-exchanges</a></div><details class="pages-more"><summary>+17 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/shipping-and-delivery" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/shipping-and-delivery">/order-help/shipping-and-delivery</a>
+<a href="https://www.usa.canon.com/order-help/terms-of-sale" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/terms-of-sale">/order-help/terms-of-sale</a>
+<a href="https://www.usa.canon.com/parts-return-terms" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/parts-return-terms">/parts-return-terms</a>
+<a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printer-buying-guide">/printer-buying-guide</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a>
+<a href="https://www.usa.canon.com/printers/easy-ink-delivery-info" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/easy-ink-delivery-info">/printers/easy-ink-delivery-info</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields">/printers/inkjet-page-yields</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure">/printers/inkjet-page-yields/page-measure</a>
+<a href="https://www.usa.canon.com/printingsolutions" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printingsolutions">/printingsolutions</a>
+<a href="https://www.usa.canon.com/privacy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy">/privacy</a>
+<a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/a-send-california-privacy-policy">/privacy/a-send-california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/california-privacy-policy">/privacy/california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/cookie-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/cookie-policy">/privacy/cookie-policy</a>
+<a href="https://www.usa.canon.com/privacy/third-party" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/third-party">/privacy/third-party</a>
+<a href="https://www.usa.canon.com/research-development" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/research-development">/research-development</a>
+<a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/terms-of-use">/terms-of-use</a>
+<a href="https://www.usa.canon.com/video-cameras" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/video-cameras">/video-cameras</a></div></details></td></tr>
+<tr data-comp="breadcrumb" data-pages="21" data-occ="21"><td class="comp-cell">breadcrumb</td><td class="num">21</td><td class="num">21</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:72.4%"></div></div><span class="cov-pct">72%</span></div></td></tr>
+<tr class="pages-row" data-parent="breadcrumb"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/bulk-orders">/order-help/bulk-orders</a>
+<a href="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions">/order-help/eos-webcam-terms-and-conditions</a>
+<a href="https://www.usa.canon.com/order-help/orders-purchases" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/orders-purchases">/order-help/orders-purchases</a>
+<a href="https://www.usa.canon.com/order-help/returns-and-exchanges" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/returns-and-exchanges">/order-help/returns-and-exchanges</a>
+<a href="https://www.usa.canon.com/order-help/shipping-and-delivery" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/shipping-and-delivery">/order-help/shipping-and-delivery</a></div><details class="pages-more"><summary>+16 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/terms-of-sale" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/terms-of-sale">/order-help/terms-of-sale</a>
+<a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/where-to-buy">/order-help/where-to-buy</a>
+<a href="https://www.usa.canon.com/parts-return-terms" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/parts-return-terms">/parts-return-terms</a>
+<a href="https://www.usa.canon.com/printers/chromebook-printing-and-scanning" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/chromebook-printing-and-scanning">/printers/chromebook-printing-and-scanning</a>
+<a href="https://www.usa.canon.com/printers/easy-ink-delivery-info" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/easy-ink-delivery-info">/printers/easy-ink-delivery-info</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields">/printers/inkjet-page-yields</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure">/printers/inkjet-page-yields/page-measure</a>
+<a href="https://www.usa.canon.com/privacy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy">/privacy</a>
+<a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/a-send-california-privacy-policy">/privacy/a-send-california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/california-privacy-policy">/privacy/california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/cookie-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/cookie-policy">/privacy/cookie-policy</a>
+<a href="https://www.usa.canon.com/privacy/third-party" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/third-party">/privacy/third-party</a>
+<a href="https://www.usa.canon.com/research-development" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/research-development">/research-development</a>
+<a href="https://www.usa.canon.com/site-map" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/site-map">/site-map</a>
+<a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/terms-of-use">/terms-of-use</a>
+<a href="https://www.usa.canon.com/website-accessibility" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/website-accessibility">/website-accessibility</a></div></details></td></tr>
+<tr data-comp="title" data-pages="19" data-occ="55"><td class="comp-cell">title</td><td class="num">55</td><td class="num">19</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:65.5%"></div></div><span class="cov-pct">66%</span></div></td></tr>
+<tr class="pages-row" data-parent="title"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/office" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/office">/office</a>
+<a href="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions">/order-help/eos-webcam-terms-and-conditions</a>
+<a href="https://www.usa.canon.com/order-help/orders-purchases" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/orders-purchases">/order-help/orders-purchases</a>
+<a href="https://www.usa.canon.com/order-help/returns-and-exchanges" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/returns-and-exchanges">/order-help/returns-and-exchanges</a>
+<a href="https://www.usa.canon.com/order-help/shipping-and-delivery" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/shipping-and-delivery">/order-help/shipping-and-delivery</a></div><details class="pages-more"><summary>+14 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/terms-of-sale" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/terms-of-sale">/order-help/terms-of-sale</a>
+<a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/where-to-buy">/order-help/where-to-buy</a>
+<a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printer-buying-guide">/printer-buying-guide</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a>
+<a href="https://www.usa.canon.com/printers/chromebook-printing-and-scanning" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/chromebook-printing-and-scanning">/printers/chromebook-printing-and-scanning</a>
+<a href="https://www.usa.canon.com/printers/easy-ink-delivery-info" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/easy-ink-delivery-info">/printers/easy-ink-delivery-info</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields">/printers/inkjet-page-yields</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure">/printers/inkjet-page-yields/page-measure</a>
+<a href="https://www.usa.canon.com/privacy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy">/privacy</a>
+<a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/a-send-california-privacy-policy">/privacy/a-send-california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/california-privacy-policy">/privacy/california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/cookie-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/cookie-policy">/privacy/cookie-policy</a>
+<a href="https://www.usa.canon.com/privacy/third-party" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/third-party">/privacy/third-party</a>
+<a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/terms-of-use">/terms-of-use</a></div></details></td></tr>
+<tr data-comp="column-control" data-pages="10" data-occ="13"><td class="comp-cell">column-control<button class="shot-btn" onclick="openModal('column-control')">&#128247; 13</button></td><td class="num">13</td><td class="num">10</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:34.5%"></div></div><span class="cov-pct">34%</span></div></td></tr>
+<tr class="pages-row" data-parent="column-control"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help">/order-help</a>
+<a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/bulk-orders">/order-help/bulk-orders</a>
+<a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/where-to-buy">/order-help/where-to-buy</a>
+<a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printer-buying-guide">/printer-buying-guide</a>
+<a href="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure">/printers/inkjet-page-yields/page-measure</a></div><details class="pages-more"><summary>+5 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/a-send-california-privacy-policy">/privacy/a-send-california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/california-privacy-policy">/privacy/california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/cookie-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/cookie-policy">/privacy/cookie-policy</a>
+<a href="https://www.usa.canon.com/research-development" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/research-development">/research-development</a>
+<a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/terms-of-use">/terms-of-use</a></div></details></td></tr>
+<tr data-comp="contentsplit content-split-classic" data-pages="8" data-occ="26"><td class="comp-cell">contentsplit content-split-classic<button class="shot-btn" onclick="openModal('contentsplit_content-split-classic')">&#128247; 26</button></td><td class="num">26</td><td class="num">8</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:27.6%"></div></div><span class="cov-pct">28%</span></div></td></tr>
+<tr class="pages-row" data-parent="contentsplit content-split-classic"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/office" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/office">/office</a>
+<a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/bulk-orders">/order-help/bulk-orders</a>
+<a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/where-to-buy">/order-help/where-to-buy</a>
+<a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printer-buying-guide">/printer-buying-guide</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a></div><details class="pages-more"><summary>+3 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/printers/chromebook-printing-and-scanning" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/chromebook-printing-and-scanning">/printers/chromebook-printing-and-scanning</a>
+<a href="https://www.usa.canon.com/printingsolutions" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printingsolutions">/printingsolutions</a>
+<a href="https://www.usa.canon.com/video-cameras" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/video-cameras">/video-cameras</a></div></details></td></tr>
+<tr data-comp="toolembed" data-pages="8" data-occ="18"><td class="comp-cell">toolembed<button class="shot-btn" onclick="openModal('toolembed')">&#128247; 2</button></td><td class="num">18</td><td class="num">8</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:27.6%"></div></div><span class="cov-pct">28%</span></div></td></tr>
+<tr class="pages-row" data-parent="toolembed"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/bulk-orders">/order-help/bulk-orders</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a>
+<a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/a-send-california-privacy-policy">/privacy/a-send-california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/california-privacy-policy">/privacy/california-privacy-policy</a>
+<a href="https://www.usa.canon.com/search" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/search">/search</a></div><details class="pages-more"><summary>+3 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/terms-of-use">/terms-of-use</a>
+<a href="https://www.usa.canon.com/video-cameras" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/video-cameras">/video-cameras</a>
+<a href="https://www.usa.canon.com/website-accessibility" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/website-accessibility">/website-accessibility</a></div></details></td></tr>
+<tr data-comp="input-card-carousel" data-pages="4" data-occ="11"><td class="comp-cell">input-card-carousel<button class="shot-btn" onclick="openModal('input-card-carousel')">&#128247; 11</button></td><td class="num">11</td><td class="num">4</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:13.8%"></div></div><span class="cov-pct">14%</span></div></td></tr>
+<tr class="pages-row" data-parent="input-card-carousel"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/office" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/office">/office</a>
+<a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printer-buying-guide">/printer-buying-guide</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a>
+<a href="https://www.usa.canon.com/video-cameras" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/video-cameras">/video-cameras</a></div></td></tr>
+<tr data-comp="card-carousel carousel" data-pages="3" data-occ="3"><td class="comp-cell">card-carousel carousel<button class="shot-btn" onclick="openModal('card-carousel_carousel')">&#128247; 3</button></td><td class="num">3</td><td class="num">3</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:10.3%"></div></div><span class="cov-pct">10%</span></div></td></tr>
+<tr class="pages-row" data-parent="card-carousel carousel"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/office" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/office">/office</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a>
+<a href="https://www.usa.canon.com/video-cameras" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/video-cameras">/video-cameras</a></div></td></tr>
+<tr data-comp="accordion" data-pages="3" data-occ="3"><td class="comp-cell">accordion<button class="shot-btn" onclick="openModal('accordion')">&#128247; 3</button></td><td class="num">3</td><td class="num">3</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:10.3%"></div></div><span class="cov-pct">10%</span></div></td></tr>
+<tr class="pages-row" data-parent="accordion"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/a-send-california-privacy-policy">/privacy/a-send-california-privacy-policy</a>
+<a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/privacy/california-privacy-policy">/privacy/california-privacy-policy</a>
+<a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/terms-of-use">/terms-of-use</a></div></td></tr>
+<tr data-comp="contentsplit" data-pages="2" data-occ="3"><td class="comp-cell">contentsplit<button class="shot-btn" onclick="openModal('contentsplit')">&#128247; 3</button></td><td class="num">3</td><td class="num">2</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:6.9%"></div></div><span class="cov-pct">7%</span></div></td></tr>
+<tr class="pages-row" data-parent="contentsplit"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help">/order-help</a>
+<a href="https://www.usa.canon.com/research-development" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/research-development">/research-development</a></div></td></tr>
+<tr data-comp="textimage" data-pages="2" data-occ="10"><td class="comp-cell">textimage<button class="shot-btn" onclick="openModal('textimage')">&#128247; 10</button></td><td class="num">10</td><td class="num">2</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:6.9%"></div></div><span class="cov-pct">7%</span></div></td></tr>
+<tr class="pages-row" data-parent="textimage"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help">/order-help</a>
+<a href="https://www.usa.canon.com/printers/iso-productivity-standards" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/iso-productivity-standards">/printers/iso-productivity-standards</a></div></td></tr>
+<tr data-comp="ctalinkbutton cta-btn-normal" data-pages="2" data-occ="2"><td class="comp-cell">ctalinkbutton cta-btn-normal<button class="shot-btn" onclick="openModal('ctalinkbutton_cta-btn-normal')">&#128247; 1</button></td><td class="num">2</td><td class="num">2</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:6.9%"></div></div><span class="cov-pct">7%</span></div></td></tr>
+<tr class="pages-row" data-parent="ctalinkbutton cta-btn-normal"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/bulk-orders">/order-help/bulk-orders</a>
+<a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a></div></td></tr>
+<tr data-comp="lists" data-pages="1" data-occ="2"><td class="comp-cell">lists<button class="shot-btn" onclick="openModal('lists')">&#128247; 2</button></td><td class="num">2</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="lists"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help">/order-help</a></div></td></tr>
+<tr data-comp="genericmodal" data-pages="1" data-occ="1"><td class="comp-cell">genericmodal<button class="shot-btn" onclick="openModal('genericmodal')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="genericmodal"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/terms-of-sale" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/terms-of-sale">/order-help/terms-of-sale</a></div></td></tr>
+<tr data-comp="hero" data-pages="1" data-occ="1"><td class="comp-cell">hero<button class="shot-btn" onclick="openModal('hero')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="hero"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/where-to-buy">/order-help/where-to-buy</a></div></td></tr>
+<tr data-comp="card card--pro-with-cta" data-pages="1" data-occ="7"><td class="comp-cell">card card--pro-with-cta<button class="shot-btn" onclick="openModal('card_card--pro-with-cta')">&#128247; 7</button></td><td class="num">7</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="card card--pro-with-cta"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/order-help/where-to-buy">/order-help/where-to-buy</a></div></td></tr>
+<tr data-comp="contentsplit content-split-clickable-image" data-pages="1" data-occ="4"><td class="comp-cell">contentsplit content-split-clickable-image<button class="shot-btn" onclick="openModal('contentsplit_content-split-clickable-image')">&#128247; 4</button></td><td class="num">4</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="contentsplit content-split-clickable-image"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printer-buying-guide">/printer-buying-guide</a></div></td></tr>
+<tr data-comp="popular-categories" data-pages="1" data-occ="1"><td class="comp-cell">popular-categories<button class="shot-btn" onclick="openModal('popular-categories')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="popular-categories"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a></div></td></tr>
+<tr data-comp="image" data-pages="1" data-occ="1"><td class="comp-cell">image</td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="image"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers">/printers</a></div></td></tr>
+<tr data-comp="mosaic-gallery" data-pages="1" data-occ="1"><td class="comp-cell">mosaic-gallery<button class="shot-btn" onclick="openModal('mosaic-gallery')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="mosaic-gallery"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure">/printers/inkjet-page-yields/page-measure</a></div></td></tr>
+<tr data-comp="videosplit" data-pages="1" data-occ="1"><td class="comp-cell">videosplit<button class="shot-btn" onclick="openModal('videosplit')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="videosplit"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/printingsolutions" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/printingsolutions">/printingsolutions</a></div></td></tr>
+<tr data-comp="coveo-search-results" data-pages="1" data-occ="1"><td class="comp-cell">coveo-search-results<button class="shot-btn" onclick="openModal('coveo-search-results')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="coveo-search-results"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/search" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/search">/search</a></div></td></tr>
+<tr data-comp="experiencefragment" data-pages="1" data-occ="1"><td class="comp-cell">experiencefragment</td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="experiencefragment"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/search" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/search">/search</a></div></td></tr>
+<tr data-comp="sitemap" data-pages="1" data-occ="1"><td class="comp-cell">sitemap<button class="shot-btn" onclick="openModal('sitemap')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.4%"></div></div><span class="cov-pct">3%</span></div></td></tr>
+<tr class="pages-row" data-parent="sitemap"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/site-map" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/site-map">/site-map</a></div></td></tr>
+<tr class="total-row"><td>TOTAL</td><td class="num">116</td><td class="num">29</td><td></td></tr>
+
+    </tbody>
+  </table>
+  </div>
+
+  
+<details class="accordion" open>
+  <summary>
+    Pages with components found
+    <span class="summary-count">29 pages</span>
+  </summary>
+  <div class="accordion-body"><div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/office" target="_blank" rel="noopener">/office</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">13 component(s)</span></div><div class="page-card-body"><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help" target="_blank" rel="noopener">/order-help</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">lists</span><span class="comp-tag">contentsplit</span><span class="comp-tag">lists</span><span class="comp-tag">textimage</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/bulk-orders" target="_blank" rel="noopener">/order-help/bulk-orders</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">12 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">rte parbase</span><span class="comp-tag">toolembed</span><span class="comp-tag">rte parbase</span><span class="comp-tag">column-control</span><span class="comp-tag">ctalinkbutton cta-btn-normal</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/eos-webcam-terms-and-conditions" target="_blank" rel="noopener">/order-help/eos-webcam-terms-and-conditions</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">17 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/orders-purchases" target="_blank" rel="noopener">/order-help/orders-purchases</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">28 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/returns-and-exchanges" target="_blank" rel="noopener">/order-help/returns-and-exchanges</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">9 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/shipping-and-delivery" target="_blank" rel="noopener">/order-help/shipping-and-delivery</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">9 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/terms-of-sale" target="_blank" rel="noopener">/order-help/terms-of-sale</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">43 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">genericmodal</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/order-help/where-to-buy" target="_blank" rel="noopener">/order-help/where-to-buy</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">15 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">hero</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">title</span><span class="comp-tag">column-control</span><span class="comp-tag">title</span><span class="comp-tag">column-control</span><span class="comp-tag">card card--pro-with-cta</span><span class="comp-tag">card card--pro-with-cta</span><span class="comp-tag">card card--pro-with-cta</span><span class="comp-tag">card card--pro-with-cta</span><span class="comp-tag">card card--pro-with-cta</span><span class="comp-tag">card card--pro-with-cta</span><span class="comp-tag">card card--pro-with-cta</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/parts-return-terms" target="_blank" rel="noopener">/parts-return-terms</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printer-buying-guide" target="_blank" rel="noopener">/printer-buying-guide</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">20 component(s)</span></div><div class="page-card-body"><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-clickable-image</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-clickable-image</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-clickable-image</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-clickable-image</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">column-control</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printers" target="_blank" rel="noopener">/printers</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">27 component(s)</span></div><div class="page-card-body"><span class="comp-tag">rte parbase</span><span class="comp-tag">toolembed</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">card-carousel carousel</span><span class="comp-tag">toolembed</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">toolembed</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">popular-categories</span><span class="comp-tag">image</span><span class="comp-tag">rte parbase</span><span class="comp-tag">ctalinkbutton cta-btn-normal</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">title</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printers/chromebook-printing-and-scanning" target="_blank" rel="noopener">/printers/chromebook-printing-and-scanning</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">contentsplit content-split-classic</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printers/easy-ink-delivery-info" target="_blank" rel="noopener">/printers/easy-ink-delivery-info</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printers/inkjet-page-yields" target="_blank" rel="noopener">/printers/inkjet-page-yields</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printers/inkjet-page-yields/page-measure" target="_blank" rel="noopener">/printers/inkjet-page-yields/page-measure</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">8 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">column-control</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">mosaic-gallery</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printers/iso-productivity-standards" target="_blank" rel="noopener">/printers/iso-productivity-standards</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">9 component(s)</span></div><div class="page-card-body"><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span><span class="comp-tag">textimage</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/printingsolutions" target="_blank" rel="noopener">/printingsolutions</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">rte parbase</span><span class="comp-tag">videosplit</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">contentsplit content-split-classic</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/privacy" target="_blank" rel="noopener">/privacy</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/privacy/a-send-california-privacy-policy" target="_blank" rel="noopener">/privacy/a-send-california-privacy-policy</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">12 component(s)</span></div><div class="page-card-body"><span class="comp-tag">toolembed</span><span class="comp-tag">breadcrumb</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">accordion</span><span class="comp-tag">toolembed</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/privacy/california-privacy-policy" target="_blank" rel="noopener">/privacy/california-privacy-policy</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">12 component(s)</span></div><div class="page-card-body"><span class="comp-tag">toolembed</span><span class="comp-tag">breadcrumb</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">accordion</span><span class="comp-tag">toolembed</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/privacy/cookie-policy" target="_blank" rel="noopener">/privacy/cookie-policy</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">6 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">column-control</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/privacy/third-party" target="_blank" rel="noopener">/privacy/third-party</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/research-development" target="_blank" rel="noopener">/research-development</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">column-control</span><span class="comp-tag">contentsplit</span><span class="comp-tag">contentsplit</span><span class="comp-tag">rte parbase</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/search" target="_blank" rel="noopener">/search</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">toolembed</span><span class="comp-tag">coveo-search-results</span><span class="comp-tag">experiencefragment</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/site-map" target="_blank" rel="noopener">/site-map</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">sitemap</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/terms-of-use" target="_blank" rel="noopener">/terms-of-use</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">8 component(s)</span></div><div class="page-card-body"><span class="comp-tag">toolembed</span><span class="comp-tag">breadcrumb</span><span class="comp-tag">column-control</span><span class="comp-tag">rte parbase</span><span class="comp-tag">accordion</span><span class="comp-tag">rte parbase</span><span class="comp-tag">rte parbase</span><span class="comp-tag">title</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/video-cameras" target="_blank" rel="noopener">/video-cameras</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">7 component(s)</span></div><div class="page-card-body"><span class="comp-tag">rte parbase</span><span class="comp-tag">input-card-carousel</span><span class="comp-tag">card-carousel carousel</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span><span class="comp-tag">toolembed</span><span class="comp-tag">contentsplit content-split-classic</span></div></div>
+<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/website-accessibility" target="_blank" rel="noopener">/website-accessibility</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">breadcrumb</span><span class="comp-tag">toolembed</span></div></div></div>
+</details>
+<details class="accordion">
+  <summary>
+    Pages with no components found
+    <span class="summary-count">0 pages</span>
+  </summary>
+  <div class="accordion-body"><p style='color:#94a3b8;font-size:12px'>None</p></div>
+</details>
+</div>
+
+<!-- Screenshot modal -->
+<div id="screenshot-modal" class="modal-overlay" hidden>
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <div class="modal-title"></div>
+    <div class="modal-img-wrap">
+      <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
+      <img class="modal-img" src="" alt="">
+      <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-caption"></div>
+      <div class="modal-counter"></div>
+    </div>
+  </div>
+</div>
+
+<script id="screenshot-data" type="application/json">{"accordion": ["dist/usa-consumer-2/accordion/a-send-california-privacy-policy.png", "dist/usa-consumer-2/accordion/california-privacy-policy.png", "dist/usa-consumer-2/accordion/terms-of-use.png"], "card-carousel_carousel": ["dist/usa-consumer-2/card-carousel_carousel/office.png", "dist/usa-consumer-2/card-carousel_carousel/printers.png", "dist/usa-consumer-2/card-carousel_carousel/video-cameras.png"], "card_card--pro-with-cta": ["dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-1.png", "dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-2.png", "dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-3.png", "dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-4.png", "dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-5.png", "dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-6.png", "dist/usa-consumer-2/card_card--pro-with-cta/where-to-buy-7.png"], "column-control": ["dist/usa-consumer-2/column-control/a-send-california-privacy-policy-1.png", "dist/usa-consumer-2/column-control/a-send-california-privacy-policy-2.png", "dist/usa-consumer-2/column-control/bulk-orders.png", "dist/usa-consumer-2/column-control/california-privacy-policy-1.png", "dist/usa-consumer-2/column-control/california-privacy-policy-2.png", "dist/usa-consumer-2/column-control/cookie-policy.png", "dist/usa-consumer-2/column-control/order-help.png", "dist/usa-consumer-2/column-control/page-measure.png", "dist/usa-consumer-2/column-control/printer-buying-guide.png", "dist/usa-consumer-2/column-control/research-development.png", "dist/usa-consumer-2/column-control/terms-of-use.png", "dist/usa-consumer-2/column-control/where-to-buy-1.png", "dist/usa-consumer-2/column-control/where-to-buy-2.png"], "contentsplit": ["dist/usa-consumer-2/contentsplit/order-help.png", "dist/usa-consumer-2/contentsplit/research-development-1.png", "dist/usa-consumer-2/contentsplit/research-development-2.png"], "contentsplit_content-split-classic": ["dist/usa-consumer-2/contentsplit_content-split-classic/bulk-orders.png", "dist/usa-consumer-2/contentsplit_content-split-classic/chromebook-printing-and-scanning-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/chromebook-printing-and-scanning-2.png", "dist/usa-consumer-2/contentsplit_content-split-classic/office-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/office-2.png", "dist/usa-consumer-2/contentsplit_content-split-classic/office-3.png", "dist/usa-consumer-2/contentsplit_content-split-classic/office-4.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printer-buying-guide-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printer-buying-guide-2.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printer-buying-guide-3.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-2.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-3.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-4.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-5.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-6.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-7.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-8.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printers-9.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printingsolutions-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printingsolutions-2.png", "dist/usa-consumer-2/contentsplit_content-split-classic/printingsolutions-3.png", "dist/usa-consumer-2/contentsplit_content-split-classic/video-cameras-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/video-cameras-2.png", "dist/usa-consumer-2/contentsplit_content-split-classic/where-to-buy-1.png", "dist/usa-consumer-2/contentsplit_content-split-classic/where-to-buy-2.png"], "contentsplit_content-split-clickable-image": ["dist/usa-consumer-2/contentsplit_content-split-clickable-image/printer-buying-guide-1.png", "dist/usa-consumer-2/contentsplit_content-split-clickable-image/printer-buying-guide-2.png", "dist/usa-consumer-2/contentsplit_content-split-clickable-image/printer-buying-guide-3.png", "dist/usa-consumer-2/contentsplit_content-split-clickable-image/printer-buying-guide-4.png"], "coveo-search-results": ["dist/usa-consumer-2/coveo-search-results/search.png"], "ctalinkbutton_cta-btn-normal": ["dist/usa-consumer-2/ctalinkbutton_cta-btn-normal/bulk-orders.png"], "genericmodal": ["dist/usa-consumer-2/genericmodal/terms-of-sale.png"], "hero": ["dist/usa-consumer-2/hero/where-to-buy.png"], "input-card-carousel": ["dist/usa-consumer-2/input-card-carousel/office-1.png", "dist/usa-consumer-2/input-card-carousel/office-2.png", "dist/usa-consumer-2/input-card-carousel/office-3.png", "dist/usa-consumer-2/input-card-carousel/printer-buying-guide-1.png", "dist/usa-consumer-2/input-card-carousel/printer-buying-guide-2.png", "dist/usa-consumer-2/input-card-carousel/printer-buying-guide-3.png", "dist/usa-consumer-2/input-card-carousel/printer-buying-guide-4.png", "dist/usa-consumer-2/input-card-carousel/printer-buying-guide-5.png", "dist/usa-consumer-2/input-card-carousel/printers-1.png", "dist/usa-consumer-2/input-card-carousel/printers-2.png", "dist/usa-consumer-2/input-card-carousel/video-cameras.png"], "lists": ["dist/usa-consumer-2/lists/order-help-1.png", "dist/usa-consumer-2/lists/order-help-2.png"], "mosaic-gallery": ["dist/usa-consumer-2/mosaic-gallery/page-measure.png"], "popular-categories": ["dist/usa-consumer-2/popular-categories/printers.png"], "rte_parbase": ["dist/usa-consumer-2/rte_parbase/a-send-california-privacy-policy-1.png", "dist/usa-consumer-2/rte_parbase/a-send-california-privacy-policy-2.png", "dist/usa-consumer-2/rte_parbase/a-send-california-privacy-policy-3.png", "dist/usa-consumer-2/rte_parbase/a-send-california-privacy-policy-4.png", "dist/usa-consumer-2/rte_parbase/a-send-california-privacy-policy-5.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-1.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-2.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-3.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-4.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-5.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-6.png", "dist/usa-consumer-2/rte_parbase/bulk-orders-7.png", "dist/usa-consumer-2/rte_parbase/california-privacy-policy-1.png", "dist/usa-consumer-2/rte_parbase/california-privacy-policy-2.png", "dist/usa-consumer-2/rte_parbase/california-privacy-policy-3.png", "dist/usa-consumer-2/rte_parbase/california-privacy-policy-4.png", "dist/usa-consumer-2/rte_parbase/california-privacy-policy-5.png", "dist/usa-consumer-2/rte_parbase/cookie-policy-1.png", "dist/usa-consumer-2/rte_parbase/cookie-policy-2.png", "dist/usa-consumer-2/rte_parbase/cookie-policy-3.png", "dist/usa-consumer-2/rte_parbase/easy-ink-delivery-info.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-1.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-10.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-11.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-12.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-13.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-14.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-15.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-2.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-3.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-4.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-5.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-6.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-7.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-8.png", "dist/usa-consumer-2/rte_parbase/eos-webcam-terms-and-conditions-9.png", "dist/usa-consumer-2/rte_parbase/inkjet-page-yields-1.png", "dist/usa-consumer-2/rte_parbase/inkjet-page-yields-2.png", "dist/usa-consumer-2/rte_parbase/office.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-1.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-10.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-11.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-12.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-13.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-14.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-15.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-16.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-17.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-2.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-3.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-4.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-5.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-6.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-7.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-8.png", "dist/usa-consumer-2/rte_parbase/orders-purchases-9.png", "dist/usa-consumer-2/rte_parbase/page-measure-1.png", "dist/usa-consumer-2/rte_parbase/page-measure-2.png", "dist/usa-consumer-2/rte_parbase/page-measure-3.png", "dist/usa-consumer-2/rte_parbase/page-measure-4.png", "dist/usa-consumer-2/rte_parbase/parts-return-terms.png", "dist/usa-consumer-2/rte_parbase/printer-buying-guide.png", "dist/usa-consumer-2/rte_parbase/printers-1.png", "dist/usa-consumer-2/rte_parbase/printingsolutions.png", "dist/usa-consumer-2/rte_parbase/privacy.png", "dist/usa-consumer-2/rte_parbase/research-development.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-1.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-2.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-3.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-4.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-5.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-6.png", "dist/usa-consumer-2/rte_parbase/returns-and-exchanges-7.png", "dist/usa-consumer-2/rte_parbase/shipping-and-delivery-1.png", "dist/usa-consumer-2/rte_parbase/shipping-and-delivery-2.png", "dist/usa-consumer-2/rte_parbase/shipping-and-delivery-3.png", "dist/usa-consumer-2/rte_parbase/shipping-and-delivery-4.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-1.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-10.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-11.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-12.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-13.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-14.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-15.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-16.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-17.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-18.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-19.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-2.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-20.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-21.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-22.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-23.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-24.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-25.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-26.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-3.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-4.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-5.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-6.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-7.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-8.png", "dist/usa-consumer-2/rte_parbase/terms-of-sale-9.png", "dist/usa-consumer-2/rte_parbase/terms-of-use-1.png", "dist/usa-consumer-2/rte_parbase/terms-of-use-2.png", "dist/usa-consumer-2/rte_parbase/terms-of-use-3.png", "dist/usa-consumer-2/rte_parbase/third-party-1.png", "dist/usa-consumer-2/rte_parbase/third-party-2.png", "dist/usa-consumer-2/rte_parbase/video-cameras.png"], "sitemap": ["dist/usa-consumer-2/sitemap/site-map.png"], "textimage": ["dist/usa-consumer-2/textimage/iso-productivity-standards-1.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-2.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-3.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-4.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-5.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-6.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-7.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-8.png", "dist/usa-consumer-2/textimage/iso-productivity-standards-9.png", "dist/usa-consumer-2/textimage/order-help.png"], "toolembed": ["dist/usa-consumer-2/toolembed/bulk-orders.png", "dist/usa-consumer-2/toolembed/website-accessibility.png"], "videosplit": ["dist/usa-consumer-2/videosplit/printingsolutions.png"]}</script>
+<script>
+// ── Table filtering & sorting ────────────────────────────────────────────────
+const rows     = Array.from(document.querySelectorAll('tbody tr[data-comp]'));
+const subRows  = Array.from(document.querySelectorAll('tbody tr.pages-row'));
+const searchEl = document.getElementById('search');
+const countEl  = document.getElementById('visible-count');
+
+function applyFilters() {
+    const q = searchEl.value.toLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+        const show = !q || row.dataset.comp.toLowerCase().includes(q);
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+    });
+    subRows.forEach(row => {
+        const parent = document.querySelector(`tr[data-comp="${row.dataset.parent}"]`);
+        row.classList.toggle('hidden', !parent || parent.classList.contains('hidden'));
+    });
+    countEl.textContent = visible + ' components';
+}
+searchEl.addEventListener('input', applyFilters);
+
+let sortCol = 'pages', sortDir = -1;
+document.querySelectorAll('thead th[data-col]').forEach(th => {
+    th.addEventListener('click', () => {
+        if (sortCol === th.dataset.col) { sortDir *= -1; }
+        else { sortCol = th.dataset.col; sortDir = sortCol === 'comp' ? 1 : -1; }
+        document.querySelectorAll('thead th').forEach(t =>
+            t.classList.remove('sorted-asc', 'sorted-desc'));
+        th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+        sortTable();
+    });
+});
+
+function sortTable() {
+    const tbody    = document.querySelector('tbody');
+    const totalRow = document.querySelector('tr.total-row');
+    rows.slice().sort((a, b) => {
+        if (sortCol === 'comp') return sortDir * a.dataset.comp.localeCompare(b.dataset.comp);
+        return sortDir * ((parseFloat(a.dataset[sortCol]) || 0) - (parseFloat(b.dataset[sortCol]) || 0));
+    }).forEach(row => {
+        tbody.appendChild(row);
+        subRows.filter(sr => sr.dataset.parent === row.dataset.comp)
+               .forEach(sr => tbody.appendChild(sr));
+    });
+    if (totalRow) tbody.appendChild(totalRow);
+    applyFilters();
+}
+
+// ── Screenshot modal ─────────────────────────────────────────────────────────
+const SCREENSHOTS = JSON.parse(document.getElementById('screenshot-data').textContent);
+const modal       = document.getElementById('screenshot-modal');
+const modalImg    = modal.querySelector('.modal-img');
+const modalTitle  = modal.querySelector('.modal-title');
+const modalCap    = modal.querySelector('.modal-caption');
+const modalCtr    = modal.querySelector('.modal-counter');
+const modalPrev   = modal.querySelector('.modal-prev');
+const modalNext   = modal.querySelector('.modal-next');
+
+let _images = [], _idx = 0;
+
+function openModal(folder) {
+    _images = SCREENSHOTS[folder] || [];
+    if (!_images.length) return;
+    _idx = 0;
+    modalTitle.textContent = folder.replace(/_/g, ' ');
+    _renderModal();
+    modal.removeAttribute('hidden');
+}
+
+function _renderModal() {
+    const src = _images[_idx];
+    modalImg.src = src;
+    modalCap.textContent = src.split('/').pop().replace(/\.png$/i, '');
+    modalCtr.textContent = `${_idx + 1} / ${_images.length}`;
+    modalPrev.disabled = _idx === 0;
+    modalNext.disabled = _idx === _images.length - 1;
+}
+
+function modalNav(dir) {
+    _idx = Math.max(0, Math.min(_images.length - 1, _idx + dir));
+    _renderModal();
+}
+
+function closeModal() { modal.setAttribute('hidden', ''); }
+
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+document.addEventListener('keydown', e => {
+    if (modal.hasAttribute('hidden')) return;
+    if (e.key === 'Escape')      closeModal();
+    if (e.key === 'ArrowLeft')   modalNav(-1);
+    if (e.key === 'ArrowRight')  modalNav(1);
+});
+</script>
+</body>
+</html>
