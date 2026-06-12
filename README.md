@@ -13,6 +13,7 @@ A Playwright-based crawler that maps AEM component usage across Canon shop and c
 | [usa-consumer-2.html](usa-consumer-2.html) | Content pages — `/newsroom` excluded |
 | [usa-learning.html](usa-learning.html) | Learning pages — random sample of 80 |
 | [usa-newsroom.html](usa-newsroom.html) | Newsroom pages — random sample of 30 |
+| [usa-cvi.html](usa-cvi.html) | CVI site pages |
 
 ---
 
@@ -89,6 +90,8 @@ Each entry in `patterns.json` defines one crawl target.
 | `label` | no | Display name used in the report title |
 | `sitemap` | yes | Full URL of the sitemap (index or regular) |
 | `url_filter` | yes | Substring — only URLs containing this are crawled |
+| `url_exclude` | no | List of substrings — URLs matching any of these are skipped |
+| `url_rewrite` | no | Object of rewrite rules applied to sitemap URLs before crawling. Currently supports `"trailing_slash": ".html"` — replaces a trailing `/` with the given suffix |
 | `container` | yes | CSS selector for the section to search within |
 | `component_root` | yes | CSS selector for the component wrapper(s) |
 | `mode` | no | `"children"` (default) or `"elements"` — see below |

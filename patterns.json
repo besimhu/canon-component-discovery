@@ -68,5 +68,14 @@
     "sources": [
       { "container": "#to-main-content", "component_root": ".ccMaxWidth", "mode": "children" }
     ]
+  },
+  "usa-cvi": {
+    "label": "USA — CVI",
+    "sitemap": "https://www.cvi.canon.com/sitemap.xml",
+    "url_filter": "/",
+    "url_rewrite": { "trailing_slash": ".html" },
+    "sources": [
+      { "container": "#to-main-content", "component_root": ".aem-Grid", "mode": "children" }
+    ]
   }
 }

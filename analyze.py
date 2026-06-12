@@ -117,6 +117,21 @@ def _url_slug(url: str) -> str:
     return urlparse(url).path.rstrip("/").split("/")[-1] or "index"
 
 
+def _apply_url_rewrite(urls: list[str], rewrite: dict) -> list[str]:
+    suffix = rewrite.get("trailing_slash")
+    if not suffix:
+        return urls
+    result = []
+    for u in urls:
+        stripped = u.rstrip("/")
+        last_segment = stripped.rsplit("/", 1)[-1]
+        if "." not in last_segment:
+            result.append(stripped + suffix)
+        else:
+            result.append(u)
+    return result
+
+
 def clear_dist(dist_dir: Path) -> None:
     if dist_dir.exists():
         shutil.rmtree(dist_dir)
@@ -349,6 +364,7 @@ async def collect_and_crawl(
     sample: int | None = None,
     url_override: str = "",
     pre_click: list[str] | None = None,
+    url_rewrite: dict | None = None,
 ) -> tuple[list[str], list[dict]]:
     """Fetch sitemap and crawl pages in a single browser session to avoid bot detection."""
     results: list[dict] = []
@@ -366,10 +382,12 @@ async def collect_and_crawl(
         else:
             if sample is not None:
                 all_urls = await _collect_pdp_urls(context, None, sitemap_url, url_filter, url_exclude)
+                all_urls = _apply_url_rewrite(all_urls, url_rewrite or {})
                 urls = random.sample(all_urls, min(sample, len(all_urls)))
                 print(f"  Random sample: {len(urls)} of {len(all_urls)} URLs\n")
             else:
                 urls = await _collect_pdp_urls(context, limit, sitemap_url, url_filter, url_exclude)
+                urls = _apply_url_rewrite(urls, url_rewrite or {})
             if not urls:
                 await browser.close()
                 return [], []
@@ -960,6 +978,7 @@ Examples:
     sitemap_url = pattern["sitemap"]
     url_filter  = pattern["url_filter"]
     url_exclude = pattern.get("url_exclude", [])
+    url_rewrite = pattern.get("url_rewrite", {})
     pre_click   = pattern.get("pre_click", [])
 
     if "sources" in pattern:
@@ -992,7 +1011,7 @@ Examples:
         urls, results = asyncio.run(collect_and_crawl(
             dist_dir, sources,
             sitemap_url=sitemap_url, url_filter=url_filter, url_exclude=url_exclude,
-            sample=sample, pre_click=pre_click,
+            sample=sample, pre_click=pre_click, url_rewrite=url_rewrite,
         ))
     else:
         raw = args.limit.strip().lower()
@@ -1008,7 +1027,7 @@ Examples:
         urls, results = asyncio.run(collect_and_crawl(
             dist_dir, sources,
             sitemap_url=sitemap_url, url_filter=url_filter, url_exclude=url_exclude,
-            limit=limit, pre_click=pre_click,
+            limit=limit, pre_click=pre_click, url_rewrite=url_rewrite,
         ))
         if not urls:
             print(f"No URLs matching '{url_filter}' found — exiting.")
