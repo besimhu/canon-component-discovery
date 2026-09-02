@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component Discovery — Reports</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    font-size: 13px; color: #1e293b; background: #f8fafc;
+}
+.top-bar {
+    background: #0f172a; padding: 14px 32px; position: sticky; top: 0; z-index: 10;
+}
+.top-bar h1 { color: #f1f5f9; font-size: 15px; font-weight: 700; }
+.top-bar .meta { color: #64748b; font-size: 11px; margin-top: 2px; }
+.content { padding: 24px 32px; }
+
+/* Summary chips */
+.summary-chips { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+.chip {
+    border-radius: 6px; padding: 8px 16px; font-weight: 600; font-size: 13px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.chip .chip-num { font-size: 22px; font-weight: 800; }
+.chip .chip-lbl { font-size: 11px; font-weight: 500; }
+
+/* Controls */
+.controls { display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+.controls input {
+    padding: 5px 10px; border: 1px solid #e2e8f0;
+    border-radius: 6px; font-size: 12px; flex: 1; min-width: 200px;
+}
+.visible-count { color:#64748b; font-size:12px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; margin-bottom: 32px; }
+table {
+    width: 100%; border-collapse: collapse;
+    background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 8px; overflow: hidden;
+}
+thead th {
+    background: #f1f5f9; text-align: left; padding: 9px 12px;
+    font-weight: 600; font-size: 12px; border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap; cursor: pointer; user-select: none;
+}
+thead th:hover { background: #e2e8f0; }
+thead th.sorted-asc::after  { content: " ▲"; font-size:10px; }
+thead th.sorted-desc::after { content: " ▼"; font-size:10px; }
+thead th.no-sort { cursor: default; }
+thead th.no-sort:hover { background: #f1f5f9; }
+tbody tr { border-bottom: 1px solid #f1f5f9; }
+tbody tr:hover td { background: #f8fafc; }
+tbody tr.hidden { display: none; }
+td { padding: 8px 12px; vertical-align: top; }
+td.comp-cell { font-family: monospace; font-size: 12px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.total-row td { font-weight: 700; background: #f1f5f9; border-top: 2px solid #e2e8f0; }
+
+/* Coverage bar */
+.cov-wrap { display:flex; align-items:center; gap:8px; min-width:120px; }
+.cov-bar-bg { flex:1; background:#e2e8f0; border-radius:3px; height:6px; }
+.cov-bar { background:#3b82f6; border-radius:3px; height:6px; }
+.cov-pct { font-size:11px; color:#64748b; width:36px; text-align:right; flex-shrink:0; }
+
+/* Screenshot button */
+.shot-btn {
+    background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af;
+    border-radius: 4px; padding: 2px 7px; font-size: 11px; cursor: pointer;
+    margin-left: 8px; white-space: nowrap; vertical-align: middle;
+}
+.shot-btn:hover { background: #dbeafe; }
+
+/* Pages detail row */
+tr.pages-row > td {
+    background: #f8fafc; padding: 6px 16px 10px 28px;
+    border-bottom: 1px solid #e2e8f0;
+}
+tr.pages-row:hover > td { background: #f1f5f9; }
+.pages-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 3px 16px; margin-top: 4px;
+}
+.page-link {
+    color: #3b82f6; text-decoration: none; font-size: 11px;
+    font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.page-link:hover { text-decoration: underline; }
+details.pages-more summary {
+    cursor: pointer; color: #64748b; font-size: 11px; user-select: none;
+}
+details.pages-more summary:hover { color: #334155; }
+details.pages-more[open] summary { margin-bottom: 4px; }
+
+/* Accordions */
+details.accordion { margin-bottom: 14px; }
+details.accordion > summary {
+    cursor: pointer; list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; background: #f1f5f9;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: #334155;
+    user-select: none;
+}
+details.accordion > summary::-webkit-details-marker { display: none; }
+details.accordion[open] > summary { border-radius: 8px 8px 0 0; border-bottom-color: #e2e8f0; }
+details.accordion > summary:hover { background: #e2e8f0; }
+details.accordion > summary::after { content: '▶'; font-size: 10px; color: #94a3b8; }
+details.accordion[open] > summary::after { content: '▼'; }
+.accordion-body {
+    border: 1px solid #e2e8f0; border-top: none;
+    border-radius: 0 0 8px 8px; padding: 14px;
+    background: #fff;
+}
+.summary-count { color: #64748b; font-size: 12px; font-weight: 500; margin-right: 8px; }
+
+/* Per-page cards */
+.page-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    margin-bottom: 10px; overflow: hidden;
+}
+.page-card-header {
+    padding: 8px 14px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0;
+    font-family: monospace; font-size: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.page-card-header a {
+    color: #1e40af; text-decoration: none;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.page-card-header a:hover { text-decoration: underline; }
+.page-card-body { padding: 8px 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+.comp-tag {
+    background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+    border-radius: 4px; padding: 2px 8px; font-size: 11px; font-family: monospace;
+}
+.empty-links { display: flex; flex-direction: column; gap: 5px; }
+.empty-link {
+    color: #3b82f6; text-decoration: none;
+    font-size: 12px; font-family: monospace;
+}
+.empty-link:hover { text-decoration: underline; }
+
+/* Modal */
+.modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.78);
+    z-index: 1000; display: flex; align-items: center; justify-content: center;
+}
+.modal-overlay[hidden] { display: none; }
+.modal-box {
+    background: #fff; border-radius: 10px; padding: 24px 24px 18px;
+    max-width: 92vw; max-height: 92vh;
+    position: relative; min-width: 360px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.modal-close {
+    position: absolute; top: 10px; right: 14px;
+    background: none; border: none; font-size: 20px; line-height: 1;
+    cursor: pointer; color: #64748b;
+}
+.modal-close:hover { color: #0f172a; }
+.modal-title {
+    font-weight: 700; font-size: 13px; font-family: monospace;
+    color: #1e293b; padding-right: 28px;
+}
+.modal-img-wrap {
+    display: flex; align-items: center; gap: 10px; flex: 1; min-height: 0;
+}
+.modal-img {
+    flex: 1; max-width: 100%; max-height: 70vh;
+    object-fit: contain; border: 1px solid #e2e8f0; border-radius: 6px;
+    display: block; min-width: 0;
+}
+.modal-nav {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 10px 14px; cursor: pointer; font-size: 22px; color: #334155;
+    flex-shrink: 0; line-height: 1;
+}
+.modal-nav:hover:not(:disabled) { background: #e2e8f0; }
+.modal-nav:disabled { opacity: 0.25; cursor: default; }
+.modal-footer { text-align: center; }
+.modal-caption { font-family: monospace; font-size: 12px; color: #475569; }
+.modal-page-link {
+    display: inline-block; margin-top: 2px; font-size: 11px;
+    color: #3b82f6; text-decoration: none;
+}
+.modal-page-link:hover { text-decoration: underline; }
+.modal-counter { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Modal — thumbnail grid */
+.modal-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px; width: 720px; max-height: 70vh; overflow-y: auto; padding: 2px;
+}
+.modal-grid[hidden] { display: none; }
+.thumb-item {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+    cursor: pointer; padding: 0; overflow: hidden; text-align: left;
+}
+.thumb-item:hover { border-color: #93c5fd; }
+.thumb-item img {
+    width: 100%; height: 90px; object-fit: cover; display: block;
+}
+.thumb-item .thumb-cap {
+    display: block; padding: 5px 7px; font-size: 10px; font-family: monospace;
+    color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Modal — single-image viewer */
+.modal-viewer { display: flex; flex-direction: column; gap: 10px; }
+.modal-viewer[hidden] { display: none; }
+.modal-back {
+    background: none; border: none; color: #3b82f6; cursor: pointer;
+    font-size: 12px; padding: 0; text-align: left; margin-bottom: -4px;
+}
+.modal-back:hover { text-decoration: underline; }
+
+.index-card-pending { opacity: 0.6; }
+.index-card-pending .page-card-header { cursor: default; }
+.index-card-pending code {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 1px 5px; font-family: monospace; font-size: 11px;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Component Discovery — Reports</h1>
+  <div class="meta">Patterns from patterns.json</div>
+</div>
+
+<div class="content">
+  <div class="index-grid" id="index-grid"></div>
+</div>
+
+<script>
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function loadIndex() {
+    const grid = document.getElementById('index-grid');
+    let patterns;
+    try {
+        patterns = await (await fetch('patterns.json')).json();
+    } catch (err) {
+        grid.innerHTML = `<p style="color:#b91c1c">Failed to load patterns.json (${esc(err)}). ` +
+            `Is this page being served over http:// rather than opened as a file?</p>`;
+        return;
+    }
+
+    const keys = Object.keys(patterns).filter(k => k !== 'defaults');
+    grid.innerHTML = keys.map(() => "<div class='page-card'><div class='page-card-header'>Loading…</div></div>").join('');
+
+    const cards = await Promise.all(keys.map(async key => {
+        const cfg = patterns[key];
+        let summary = null;
+        try {
+            const r = await fetch(`dist/${key}/summary.json`);
+            if (r.ok) summary = await r.json();
+        } catch (err) { /* not generated yet */ }
+
+        if (summary) {
+            return `
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <a href="${esc(key)}.html">${esc(summary.label || cfg.label || key)}</a>
+                    </div>
+                    <div class="page-card-body" style="color:#64748b;font-size:11px;">
+                        Generated ${esc(summary.generated)} · ${summary.total_pages} page(s) crawled · ${summary.components.length} component(s)
+                    </div>
+                </div>`;
+        }
+        return `
+            <div class="page-card index-card-pending">
+                <div class="page-card-header">${esc(cfg.label || key)}</div>
+                <div class="page-card-body" style="color:#64748b;font-size:11px;">
+                    Not generated yet — run: <code>python3 analyze.py --pattern ${esc(key)}</code>
+                </div>
+            </div>`;
+    }));
+
+    grid.innerHTML = cards.join('') || "<p style='color:#94a3b8;font-size:12px'>No patterns defined in patterns.json</p>";
+}
+
+loadIndex();
+</script>
+</body>
+</html>

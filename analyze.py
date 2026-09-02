@@ -1,37 +1,54 @@
 """
-components/analyze.py — Crawl Canon shop PDP pages, extract immediate child
-div classes inside #pdp-description > .ccMaxWidth, and produce an HTML report.
+components/analyze.py — Crawl a site's pages, identify components inside a
+container per patterns.json, and produce an HTML report.
 
-Classification rules:
-  - variable-spacing-wrapper divs are unwrapped; their immediate div children
-    are treated as the actual components
-  - Any element whose class list includes rte-textImage-cmp is recorded as
-    just "rte-textImage-cmp" (other classes on that element are ignored)
+Component identification (per pattern, via `identify_by`):
+  - "class"     (default) — the element's CSS class list, joined, is the name
+  - "attribute" — the value of `identify_attr` (e.g. automation-testid) is
+    the name
+
+Other per-pattern knobs:
+  - exclude_selectors — matched elements inside any of these are skipped
+    entirely (checked via closest(), so nested matches are excluded too)
+  - top_level_only — when set, an element is skipped if an ancestor also
+    matches component_root (keeps only the outermost match in a nested pair)
 
 Screenshots:
-  - Saved to dist/{component}/{page-slug}.png
-  - Multiple of the same component on one page: {slug}-1.png, {slug}-2.png …
+  - Saved to dist/{pattern}/{component}/{page-slug}.webp (+ a _thumbs/ subfolder)
+  - Multiple of the same component on one page: {slug}-1.webp, {slug}-2.webp …
   - "title" components are excluded from screenshots
-  - dist/ is cleared and recreated on every run
+  - dist/{pattern}/ is cleared and recreated on every run
 
 Usage:
-    python3 analyze.py                    # first 20 /shop/p/ pages (default)
-    python3 analyze.py --limit 100
-    python3 analyze.py --out report.html
+    python3 analyze.py --pattern <name>   # first 20 matching pages (default)
+    python3 analyze.py --pattern <name> --limit 100
+    python3 analyze.py --pattern <name> --out report.html
 """
 
 import argparse
 import asyncio
+import functools
+import http.server
 import json
+import mimetypes
 import random
 import shutil
+import time
+import webbrowser
 from collections import defaultdict
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
+from PIL import Image
 from playwright.async_api import async_playwright
+
+# Explicit, since http.server's MIME lookup otherwise depends on what's
+# registered on the host OS/Python build.
+mimetypes.add_type("application/json", ".json")
+mimetypes.add_type("image/webp", ".webp")
 
 try:
     from playwright_stealth import Stealth
@@ -53,26 +70,58 @@ def load_patterns() -> dict:
 
 def get_pattern(key: str) -> dict:
     patterns = load_patterns()
-    if key not in patterns:
-        available = ", ".join(patterns)
-        raise SystemExit(f"ERROR: pattern '{key}' not found. Available: {available}")
-    return patterns[key]
+    available = {k: v for k, v in patterns.items() if k != "defaults"}
+    if key not in available:
+        raise SystemExit(f"ERROR: pattern '{key}' not found. Available: {', '.join(available)}")
+    return available[key]
+
+
+def get_defaults() -> dict:
+    """Shared `exclude_selectors`/`nested_captures` from patterns.json's
+    top-level "defaults" key, merged into every capture group (source) by
+    `_merge_source_defaults` — see its docstring for merge semantics."""
+    return load_patterns().get("defaults", {})
+
+
+def _merge_source_defaults(source: dict, defaults: dict) -> dict:
+    """
+    Merge shared `defaults` into a single capture group (source) config:
+      - exclude_selectors: concatenated — defaults first, then the source's
+        own entries as additions.
+      - nested_captures: merged by key — a source can override one named
+        rule from defaults (by re-specifying that key) or add new ones,
+        while any key it doesn't mention still falls through to defaults.
+    """
+    merged = dict(source)
+    merged["exclude_selectors"] = [
+        *defaults.get("exclude_selectors", []),
+        *source.get("exclude_selectors", []),
+    ]
+    merged["nested_captures"] = {
+        **defaults.get("nested_captures", {}),
+        **source.get("nested_captures", {}),
+    }
+    return merged
 BROWSER_UA  = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/124.0.0.0 Safari/537.36"
 )
 SKIP_SCREENSHOT  = {"title", "breadcrumb"}
-HIDE_SELECTORS   = ["#usntA40Toggle", "#Chat_Image_Button", "#onetrust-consent-sdk", ".wrap-media-product-info", ".page-anchors-top", ".tabsContainer", ".product.media", ".product-info-main.pdp-info", "#embedded-messaging", ".inc_pdp_block", ".header.aem-GridColumn"]
+HIDE_SELECTORS   = ["#usntA40Toggle", "#Chat_Image_Button", "#onetrust-consent-sdk", ".wrap-media-product-info", ".page-anchors-top", ".tabsContainer", ".product.media", ".product-info-main.pdp-info", "#embedded-messaging", ".inc_pdp_block", ".page-header", ".header.aem-GridColumn", ".sections.nav-sections"]
+
+# Screenshots are saved as lossless WebP (smaller than PNG with no quality
+# loss). Thumbnails are a separate, small, lossy-compressed WebP render used
+# for the gallery grid so it doesn't have to load full-size images.
+SCREENSHOT_EXT     = "webp"
+THUMB_DIRNAME      = "_thumbs"
+THUMB_MAX_WIDTH    = 320
+THUMB_QUALITY      = 70
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-def _esc(s: str) -> str:
-    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
 
 async def _scroll_page(page) -> None:
     """
@@ -97,6 +146,30 @@ async def _hide_elements(page) -> None:
     await page.add_style_tag(content=css)
 
 
+CONTENT_WAIT_TIMEOUT_MS = 8_000
+
+
+async def _wait_for_content(page, container_opts: list[str], component_root: str) -> None:
+    """
+    Wait until at least one of `container_opts` is present in the DOM *and*
+    contains a `component_root` match. query_selector() alone checks the DOM
+    at that exact instant — under concurrent crawling, tab content (e.g. a
+    pre_click-revealed panel) can still be rendering, so an immediate check
+    produces false "not found" negatives that vanish when the page is
+    crawled alone. Swallows the timeout; callers still do their own
+    query_selector afterward and report "not found" if it's genuinely absent.
+    """
+    try:
+        await page.wait_for_function(
+            "(args) => args.containers.some(c => { "
+            "const r = document.querySelector(c); return r && r.querySelector(args.root); })",
+            {"containers": container_opts, "root": component_root},
+            timeout=CONTENT_WAIT_TIMEOUT_MS,
+        )
+    except Exception:
+        pass
+
+
 def _classify(cls_list: list[str]) -> str:
     """Return the canonical component name for a list of CSS classes."""
     filtered = [c for c in cls_list
@@ -106,6 +179,21 @@ def _classify(cls_list: list[str]) -> str:
     if not filtered:
         return "(no class)"
     return " ".join(filtered)
+
+
+def _save_screenshot(png_bytes: bytes, comp_dir: Path, fname: str) -> None:
+    """Save `png_bytes` as a lossless WebP at comp_dir/fname, plus a small
+    lossy WebP thumbnail at comp_dir/_thumbs/fname for the gallery grid."""
+    img = Image.open(BytesIO(png_bytes)).convert("RGB")
+    img.save(comp_dir / fname, "WEBP", lossless=True, method=6)
+
+    thumb = img
+    if thumb.width > THUMB_MAX_WIDTH:
+        ratio = THUMB_MAX_WIDTH / thumb.width
+        thumb = thumb.resize((THUMB_MAX_WIDTH, max(1, round(thumb.height * ratio))), Image.LANCZOS)
+    thumb_dir = comp_dir / THUMB_DIRNAME
+    thumb_dir.mkdir(exist_ok=True)
+    thumb.save(thumb_dir / fname, "WEBP", quality=THUMB_QUALITY, method=6)
 
 
 def _comp_to_folder(comp: str) -> str:
@@ -237,46 +325,205 @@ async def _get_component_elements(cc_handle) -> list:
     return pairs
 
 
-async def _analyze_page(context, url: str, dist_dir: Path,
-                        sources: list[dict], pre_click: list[str] | None = None) -> list[str]:
+async def _expand_nested(
+    el, comp_name: str, nested_captures: dict, identify_by: str, identify_attr: str,
+) -> list[tuple]:
+    """
+    If `comp_name` has a rule in `nested_captures`, expand `el` into
+    [el itself, unless skip_self] + [its drilled-down children, up to
+    `limit`], recursing into any child whose own identified name also has a
+    rule (e.g. a VerticalSectionSpacing whose first child happens to be a
+    Grid follows the Grid rule too). Otherwise `el` is a plain leaf.
+
+    A child is named by its own identify_attr value if it has one (this is
+    what lets recursion trigger — e.g. a nested element with
+    automation-testid="bonsai-Grid" is recognized as a Grid), falling back
+    to the rule's static `name` when the attribute is absent.
+    """
+    rule = nested_captures.get(comp_name)
+    if not rule:
+        return [(el, comp_name)]
+
+    pairs: list[tuple] = [] if rule.get("skip_self") else [(el, comp_name)]
+
+    children = await el.query_selector_all(rule["selector"])
+    limit = rule.get("limit")
+    if limit is not None:
+        children = children[:limit]
+
+    for child in children:
+        child_name = None
+        if identify_by == "attribute":
+            child_name = await child.get_attribute(identify_attr)
+        if not child_name:
+            child_name = rule.get("name", comp_name)
+        pairs.extend(await _expand_nested(child, child_name, nested_captures, identify_by, identify_attr))
+
+    return pairs
+
+
+GOTO_RETRY_BACKOFF_MS = 4_000
+
+
+class _WafBackoff:
+    """
+    Shared across every concurrent page task in one crawl. A single hot URL
+    getting a transient 403 is handled by `_goto_with_retry`'s own quick
+    retry — but the site's Akamai WAF can also escalate into a sustained
+    block once a client's overall request volume/velocity trips its
+    bot-rate heuristics, 403-ing most *subsequent* requests regardless of
+    URL (each requested only once). A per-page retry can't ride that out,
+    so once a burst of blocks is seen, this pauses the entire crawl — every
+    task checks in before its next request — with exponential backoff,
+    instead of racing through the rest of the URL list recording hundreds
+    of false "blocked" results.
+    """
+    TRIP_THRESHOLD = 4        # blocks within WINDOW_S to trip a new cooldown
+    WINDOW_S       = 30.0
+    BASE_BACKOFF_S = 60.0
+    MAX_BACKOFF_S  = 600.0
+    RESET_AFTER_S  = 300.0    # calm period after which backoff resets to base
+
+    def __init__(self):
+        self.cooldown_until = 0.0
+        self.backoff        = self.BASE_BACKOFF_S
+        self.last_trip_at   = 0.0
+        self._recent: list[float] = []
+
+    async def wait_if_cooling_down(self) -> None:
+        now = time.monotonic()
+        if now < self.cooldown_until:
+            await asyncio.sleep(self.cooldown_until - now)
+
+    async def record_block(self, print_lock: asyncio.Lock, status) -> None:
+        now = time.monotonic()
+        self._recent = [t for t in self._recent if now - t < self.WINDOW_S] + [now]
+        if len(self._recent) < self.TRIP_THRESHOLD or now < self.cooldown_until:
+            return
+        if now - self.last_trip_at > self.RESET_AFTER_S:
+            self.backoff = self.BASE_BACKOFF_S
+        pause = self.backoff
+        self.cooldown_until = now + pause
+        self.last_trip_at   = now
+        self.backoff = min(self.backoff * 2, self.MAX_BACKOFF_S)
+        async with print_lock:
+            print(f"\n  ⏸  Site is rate-limiting this crawl (HTTP {status} × "
+                  f"{len(self._recent)} in {self.WINDOW_S:.0f}s) — pausing "
+                  f"{pause:.0f}s before continuing\n")
+        await asyncio.sleep(pause)
+
+
+async def _goto_with_retry(
+    page, url: str, messages: list[str], block_tracker: _WafBackoff, print_lock: asyncio.Lock,
+) -> bool:
+    """
+    Navigate to `url`, retrying once after a backoff if the response is a
+    client/server error. The site's Akamai WAF can transiently 403 a URL
+    that's been requested repeatedly in a short window (its own edge rate
+    limiting, not a real block) — status clears again after a short cooldown
+    — so a bare 403/5xx response gets a page-content check (e.g. an "Access
+    Denied" edge page) rather than being trusted as a real "no components"
+    result. Returns False (after recording a message) if still failing.
+    """
+    await block_tracker.wait_if_cooling_down()
+    for attempt in range(2):
+        resp = await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+        status = resp.status if resp else None
+        if status is None or status < 400:
+            return True
+        if attempt == 0:
+            await page.wait_for_timeout(GOTO_RETRY_BACKOFF_MS)
+    await block_tracker.record_block(print_lock, status)
+    messages.append(f"      ⚠  HTTP {status} — request blocked/errored (not a missing-component result)")
+    return False
+
+
+async def _analyze_page(context, url: str, dist_dir: Path, sources: list[dict],
+                        pre_click: list[str] | None,
+                        block_tracker: _WafBackoff, print_lock: asyncio.Lock,
+                        ) -> tuple[list[str], list[dict], list[str]]:
+    """Returns (components, shots, messages) — `messages` are diagnostic
+    lines (warnings/errors) the caller prints under its own lock, so output
+    from concurrently-crawled pages can't interleave into misleading,
+    duplicate-looking lines."""
     page = await context.new_page()
     await _stealth(page)
+    messages: list[str] = []
     try:
-        await page.goto(url, wait_until="domcontentloaded", timeout=45_000)
+        if not await _goto_with_retry(page, url, messages, block_tracker, print_lock):
+            return [], [], messages
         await page.wait_for_timeout(2_000)
-        consent = await page.query_selector("#onetrust-accept-btn-handler")
-        if consent:
-            await consent.click()
-            await page.wait_for_timeout(500)
+        # No cookie-banner accept-click needed: the context's init script
+        # (see _new_context) keeps #onetrust-consent-sdk hidden from its
+        # first paint, so it never renders and can't block later clicks.
         for sel in (pre_click or []):
             el = await page.query_selector(sel)
             if el:
-                await el.click()
-                await page.wait_for_timeout(150)
+                try:
+                    await el.click(timeout=5_000)
+                    await page.wait_for_timeout(150)
+                except Exception:
+                    pass
         await _scroll_page(page)
         await _hide_elements(page)
 
         all_pairs: list[tuple] = []
         for source in sources:
-            container      = source["container"]
-            component_root = source["component_root"]
-            mode           = source.get("mode", "children")
+            container       = source["container"]
+            container_opts  = container if isinstance(container, list) else [container]
+            container_label = " or ".join(container_opts)
+            component_root  = source["component_root"]
+            mode            = source.get("mode", "children")
             child_selectors = source.get("child_selectors") or []
 
-            root = await page.query_selector(container)
+            # query_selector() below checks the DOM at this exact instant —
+            # under concurrent crawling the container/its content can still
+            # be rendering (especially after a pre_click reveal), so wait for
+            # it first rather than reporting a false "not found".
+            await _wait_for_content(page, container_opts, component_root)
+
+            root = None
+            for sel in container_opts:
+                root = await page.query_selector(sel)
+                if root:
+                    break
             if not root:
-                print(f"      ⚠  {container} not found")
+                messages.append(f"      ⚠  {container_label} not found")
                 continue
 
             if mode == "elements":
                 els = await root.query_selector_all(component_root)
                 if not els:
-                    print(f"      ⚠  no {component_root} elements found inside {container}")
+                    messages.append(f"      ⚠  no {component_root} elements found inside {container_label}")
                     continue
+                identify_by       = source.get("identify_by", "class")
+                identify_attr     = source.get("identify_attr", "")
+                exclude_selectors = source.get("exclude_selectors") or []
+                top_level_only    = source.get("top_level_only", False)
+                nested_captures   = source.get("nested_captures") or {}
+
                 pairs: list[tuple] = []
                 for el in els:
-                    cls_list = await el.evaluate("el => Array.from(el.classList)")
-                    pairs.append((el, _classify(cls_list)))
+                    if exclude_selectors and await el.evaluate(
+                        "(el, sels) => sels.some(s => el.closest(s))", exclude_selectors
+                    ):
+                        continue
+                    if top_level_only and await el.evaluate(
+                        "(el, sel) => !!(el.parentElement && el.parentElement.closest(sel))",
+                        component_root,
+                    ):
+                        continue
+
+                    if identify_by == "attribute":
+                        comp_name = await el.get_attribute(identify_attr) or "(no attr)"
+                    else:
+                        cls_list = await el.evaluate("el => Array.from(el.classList)")
+                        comp_name = _classify(cls_list)
+
+                    if nested_captures:
+                        pairs.extend(await _expand_nested(el, comp_name, nested_captures, identify_by, identify_attr))
+                    else:
+                        pairs.append((el, comp_name))
                     for child_def in child_selectors:
                         sel  = child_def["selector"]
                         name = child_def.get("name")
@@ -290,20 +537,20 @@ async def _analyze_page(context, url: str, dist_dir: Path,
             else:
                 ccs = await root.query_selector_all(component_root)
                 if not ccs:
-                    print(f"      ⚠  {component_root} not found inside {container}")
+                    messages.append(f"      ⚠  {component_root} not found inside {container_label}")
                     continue
                 pairs = []
                 for cc in ccs:
                     pairs.extend(await _get_component_elements(cc))
                 if not pairs:
-                    print(f"      ⚠  {component_root} found but contains no immediate div children")
+                    messages.append(f"      ⚠  {component_root} found but contains no immediate div children")
                     continue
 
             all_pairs.extend(pairs)
 
         pairs = all_pairs
         if not pairs:
-            return []
+            return [], [], messages
 
         # Count per component folder to decide whether to use index in filenames
         slug = _url_slug(url)
@@ -311,6 +558,7 @@ async def _analyze_page(context, url: str, dist_dir: Path,
         for _, comp in pairs:
             folder_counts[_comp_to_folder(comp)] += 1
 
+        shots: list[dict] = []
         comp_idx: dict[str, int] = defaultdict(int)
         for el, comp in pairs:
             folder_name = _comp_to_folder(comp)
@@ -322,7 +570,7 @@ async def _analyze_page(context, url: str, dist_dir: Path,
 
                 n       = comp_idx[folder_name]
                 total   = folder_counts[folder_name]
-                fname   = f"{slug}-{n}.png" if total > 1 else f"{slug}.png"
+                fname   = f"{slug}-{n}.{SCREENSHOT_EXT}" if total > 1 else f"{slug}.{SCREENSHOT_EXT}"
 
                 try:
                     if not await el.is_visible():
@@ -331,26 +579,70 @@ async def _analyze_page(context, url: str, dist_dir: Path,
                     if not box or box["width"] == 0 or box["height"] == 0:
                         continue
                     await el.scroll_into_view_if_needed()
-                    await el.screenshot(path=str(comp_dir / fname))
+                    png_bytes = await el.screenshot()
+                    _save_screenshot(png_bytes, comp_dir, fname)
+                    shots.append({
+                        "folder":  folder_name,
+                        "full":    f"{dist_dir}/{folder_name}/{fname}",
+                        "thumb":   f"{dist_dir}/{folder_name}/{THUMB_DIRNAME}/{fname}",
+                        "caption": Path(fname).stem,
+                        "url":     url,
+                    })
                 except Exception as e:
-                    print(f"      Screenshot failed ({comp}): {e}")
+                    messages.append(f"      Screenshot failed ({comp}): {e}")
 
-        return [comp for _, comp in pairs]
+        return [comp for _, comp in pairs], shots, messages
 
     except Exception as e:
-        print(f"    ERROR: {e}")
-        return []
+        messages.append(f"    ERROR: {e}")
+        return [], [], messages
     finally:
         await page.close()
 
 
 CONTEXT_REFRESH_EVERY = 100
+DEFAULT_CONCURRENCY   = 6
 
 
 async def _new_context(browser):
-    return await browser.new_context(
+    context = await browser.new_context(
         user_agent=BROWSER_UA, viewport={"width": 1440, "height": 900}, locale="en-US",
     )
+    # Runs before any of the page's own scripts on every navigation in this
+    # context, so the OneTrust banner is suppressed from its very first
+    # paint — it never has a chance to render, let alone linger and block
+    # later clicks (e.g. the pre_click tab button) under concurrent load.
+    await context.add_init_script(
+        "(() => { const s = document.createElement('style'); "
+        "s.textContent = '#onetrust-consent-sdk { display: none !important; }'; "
+        "document.documentElement.appendChild(s); })();"
+    )
+    return context
+
+
+async def _crawl_one(
+    context, url: str, dist_dir: Path, sources: list[dict], pre_click: list[str] | None,
+    sem: asyncio.Semaphore, print_lock: asyncio.Lock, progress: list[int], total: int,
+    block_tracker: _WafBackoff,
+) -> dict:
+    """Run one page through `_analyze_page`, gated by `sem` for concurrency, and
+    print its result atomically (protected by `print_lock`) so output from
+    concurrent pages doesn't interleave mid-line."""
+    async with sem:
+        components, shots, messages = await _analyze_page(
+            context, url, dist_dir, sources, pre_click, block_tracker, print_lock,
+        )
+    async with print_lock:
+        progress[0] += 1
+        i = progress[0]
+        print(f"  [{i:>3}/{total}] {url}")
+        if components:
+            print(f"           {len(components)} component(s): {', '.join(components)}")
+        else:
+            print(f"           — no components found")
+        for msg in messages:
+            print(msg)
+    return {"url": url, "components": components, "shots": shots}
 
 
 async def collect_and_crawl(
@@ -365,8 +657,14 @@ async def collect_and_crawl(
     url_override: str = "",
     pre_click: list[str] | None = None,
     url_rewrite: dict | None = None,
+    concurrency: int = DEFAULT_CONCURRENCY,
 ) -> tuple[list[str], list[dict]]:
-    """Fetch sitemap and crawl pages in a single browser session to avoid bot detection."""
+    """Fetch sitemap and crawl pages in a single browser session to avoid bot detection.
+
+    Pages within each batch of CONTEXT_REFRESH_EVERY are crawled concurrently
+    (bounded by `concurrency` tabs at a time, all sharing one context) rather
+    than one at a time — the context is still refreshed between batches on
+    the same schedule as before."""
     results: list[dict] = []
 
     async with async_playwright() as pw:
@@ -392,19 +690,22 @@ async def collect_and_crawl(
                 await browser.close()
                 return [], []
 
-        print(f"Crawling {len(urls)} page(s) …\n{'─'*60}")
-        for i, url in enumerate(urls, 1):
-            if i > 1 and (i - 1) % CONTEXT_REFRESH_EVERY == 0:
+        print(f"Crawling {len(urls)} page(s) at concurrency {concurrency} …\n{'─'*60}")
+        print_lock    = asyncio.Lock()
+        progress      = [0]
+        block_tracker = _WafBackoff()
+        for batch_start in range(0, len(urls), CONTEXT_REFRESH_EVERY):
+            if batch_start > 0:
                 await context.close()
                 context = await _new_context(browser)
                 print(f"  (context refreshed)\n")
-            print(f"  [{i:>3}/{len(urls)}] {url}")
-            components = await _analyze_page(context, url, dist_dir, sources, pre_click)
-            results.append({"url": url, "components": components})
-            if components:
-                print(f"           {len(components)} component(s): {', '.join(components)}")
-            else:
-                print(f"           — no components found")
+            batch = urls[batch_start:batch_start + CONTEXT_REFRESH_EVERY]
+            sem   = asyncio.Semaphore(max(1, concurrency))
+            batch_results = await asyncio.gather(*(
+                _crawl_one(context, url, dist_dir, sources, pre_click, sem, print_lock, progress, len(urls), block_tracker)
+                for url in batch
+            ))
+            results.extend(batch_results)
 
         await browser.close()
 
@@ -412,27 +713,83 @@ async def collect_and_crawl(
 
 
 # ---------------------------------------------------------------------------
-# Screenshot index
+# JSON data outputs
 # ---------------------------------------------------------------------------
 
-def scan_screenshots(dist_dir: Path) -> dict[str, list[str]]:
+def write_json_outputs(
+    dist_dir: Path, label: str, total_pages: int, results: list[dict],
+) -> tuple[list[tuple[str, list[str]]], dict[str, int], dict[str, list[dict]]]:
     """
-    Walk dist/ and return {folder_name: [relative_path, ...]} for every
-    component folder that contains PNG files.  Paths are relative to the
-    HTML file (e.g. "dist/rte-textImage-cmp/some-product.png").
+    Write summary.json (high-level breakdown consumed by the report shell on
+    load) and one {folder}/data.json per component (its screenshots, lazily
+    fetched only when that component's gallery is opened).
+
+    Returns (sorted_components, component_occurrences, shots_by_folder) so
+    the caller can print the same data to the console.
     """
-    result: dict[str, list[str]] = {}
-    if not dist_dir.exists():
-        return result
-    for comp_dir in sorted(dist_dir.iterdir()):
-        if not comp_dir.is_dir():
-            continue
-        images = sorted(f for f in comp_dir.glob("*.png"))
-        if images:
-            result[comp_dir.name] = [
-                f"{dist_dir}/{comp_dir.name}/{img.name}" for img in images
-            ]
-    return result
+    component_pages: dict[str, list[str]] = defaultdict(list)
+    component_occ: dict[str, int] = defaultdict(int)
+    shots_by_folder: dict[str, list[dict]] = defaultdict(list)
+
+    for r in results:
+        seen_on_page: set[str] = set()
+        for comp in r["components"]:
+            component_occ[comp] += 1
+            if comp not in seen_on_page:
+                component_pages[comp].append(r["url"])
+                seen_on_page.add(comp)
+        for shot in r["shots"]:
+            shots_by_folder[shot["folder"]].append({
+                "full": shot["full"], "thumb": shot["thumb"],
+                "caption": shot["caption"], "url": shot["url"],
+            })
+
+    sorted_components = sorted(component_pages.items(), key=lambda x: -len(x[1]))
+
+    summary = {
+        "label": label,
+        "generated": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "total_pages": total_pages,
+        "components": [
+            {
+                "name": comp,
+                "folder": _comp_to_folder(comp),
+                "occurrences": component_occ[comp],
+                "pages": pages,
+                "shot_count": len(shots_by_folder.get(_comp_to_folder(comp), [])),
+            }
+            for comp, pages in sorted_components
+        ],
+        "page_results": [
+            {"url": r["url"], "components": r["components"]} for r in results
+        ],
+    }
+    (dist_dir / "summary.json").write_text(json.dumps(summary, ensure_ascii=False))
+
+    for folder, shots in shots_by_folder.items():
+        comp_dir = dist_dir / folder
+        comp_dir.mkdir(parents=True, exist_ok=True)
+        (comp_dir / "data.json").write_text(json.dumps({"shots": shots}, ensure_ascii=False))
+
+    return sorted_components, component_occ, shots_by_folder
+
+
+def _serve_report(out_path: Path) -> None:
+    """Serve the current directory over HTTP and open the report in a
+    browser, so its fetch() calls for summary.json / {folder}/data.json
+    work (Chrome blocks fetch() against file:// pages)."""
+    handler_cls = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(Path.cwd()))
+    httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler_cls)
+    port = httpd.server_address[1]
+    url  = f"http://127.0.0.1:{port}/{out_path.as_posix()}"
+    print(f"\nServing report at {url}\nPress Ctrl+C to stop.")
+    webbrowser.open(url)
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
+    finally:
+        httpd.server_close()
 
 
 # ---------------------------------------------------------------------------
@@ -617,33 +974,164 @@ details.accordion[open] > summary::after { content: '▼'; }
 .modal-nav:disabled { opacity: 0.25; cursor: default; }
 .modal-footer { text-align: center; }
 .modal-caption { font-family: monospace; font-size: 12px; color: #475569; }
+.modal-page-link {
+    display: inline-block; margin-top: 2px; font-size: 11px;
+    color: #3b82f6; text-decoration: none;
+}
+.modal-page-link:hover { text-decoration: underline; }
 .modal-counter { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Modal — thumbnail grid */
+.modal-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px; width: 720px; max-height: 70vh; overflow-y: auto; padding: 2px;
+}
+.modal-grid[hidden] { display: none; }
+.thumb-item {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+    cursor: pointer; padding: 0; overflow: hidden; text-align: left;
+}
+.thumb-item:hover { border-color: #93c5fd; }
+.thumb-item img {
+    width: 100%; height: 90px; object-fit: cover; display: block;
+}
+.thumb-item .thumb-cap {
+    display: block; padding: 5px 7px; font-size: 10px; font-family: monospace;
+    color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Modal — single-image viewer */
+.modal-viewer { display: flex; flex-direction: column; gap: 10px; }
+.modal-viewer[hidden] { display: none; }
+.modal-back {
+    background: none; border: none; color: #3b82f6; cursor: pointer;
+    font-size: 12px; padding: 0; text-align: left; margin-bottom: -4px;
+}
+.modal-back:hover { text-decoration: underline; }
 """
 
 REPORT_JS = """
-// ── Table filtering & sorting ────────────────────────────────────────────────
-const rows     = Array.from(document.querySelectorAll('tbody tr[data-comp]'));
-const subRows  = Array.from(document.querySelectorAll('tbody tr.pages-row'));
-const searchEl = document.getElementById('search');
-const countEl  = document.getElementById('visible-count');
-
-function applyFilters() {
-    const q = searchEl.value.toLowerCase();
-    let visible = 0;
-    rows.forEach(row => {
-        const show = !q || row.dataset.comp.toLowerCase().includes(q);
-        row.classList.toggle('hidden', !show);
-        if (show) visible++;
-    });
-    subRows.forEach(row => {
-        const parent = document.querySelector(`tr[data-comp="${row.dataset.parent}"]`);
-        row.classList.toggle('hidden', !parent || parent.classList.contains('hidden'));
-    });
-    countEl.textContent = visible + ' components';
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-searchEl.addEventListener('input', applyFilters);
 
+// Strip a URL down to its path (+query) for compact display, generically —
+// works for whatever site was crawled rather than one hardcoded domain.
+function shortPath(url) {
+    try { const u = new URL(url); return u.pathname + u.search; } catch { return url; }
+}
+
+// ── Load summary.json and render everything ─────────────────────────────────
+// The report ships as a thin static shell; all data lives in summary.json
+// (high-level breakdown, loaded once) and one {folder}/data.json per
+// component (screenshots, loaded lazily — see openModal below). This means
+// the HTML/CSS/JS here can be edited and reloaded without re-running a crawl,
+// as long as a previous run's dist/ output is still on disk.
+let SUMMARY = null;
 let sortCol = 'pages', sortDir = -1;
+let searchQuery = '';
+
+fetch(`${DIST_BASE}/summary.json`)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => { SUMMARY = data; renderAll(); })
+    .catch(err => {
+        document.querySelector('.content').innerHTML =
+            `<p style="color:#b91c1c">Failed to load ${DIST_BASE}/summary.json (${esc(err)}). ` +
+            `Is this report being served over http:// rather than opened as a file?</p>`;
+    });
+
+function renderAll() {
+    document.title = `${SUMMARY.label} — Component Discovery`;
+    document.getElementById('report-title').textContent = `${SUMMARY.label} — Component Discovery`;
+    document.getElementById('report-meta').textContent =
+        `Generated ${SUMMARY.generated} · ${SUMMARY.total_pages} page(s) crawled`;
+    renderChips();
+    renderTable();
+    renderPagesSection();
+}
+
+function renderChips() {
+    const pagesWithData = SUMMARY.page_results.filter(r => r.components.length).length;
+    const totalOcc = SUMMARY.components.reduce((s, c) => s + c.occurrences, 0);
+    document.getElementById('summary-chips').innerHTML = `
+        <div class="chip" style="background:#eff6ff;color:#1e40af;">
+            <span class="chip-num">${SUMMARY.total_pages}</span>
+            <span class="chip-lbl">Pages Crawled</span>
+        </div>
+        <div class="chip" style="background:#f0fdf4;color:#166534;">
+            <span class="chip-num">${pagesWithData}</span>
+            <span class="chip-lbl">Pages with Components</span>
+        </div>
+        <div class="chip" style="background:#f1f5f9;color:#334155;">
+            <span class="chip-num">${SUMMARY.components.length}</span>
+            <span class="chip-lbl">Unique Components</span>
+        </div>
+        <div class="chip" style="background:#fef9c3;color:#854d0e;">
+            <span class="chip-num">${totalOcc}</span>
+            <span class="chip-lbl">Total Occurrences</span>
+        </div>`;
+}
+
+function pageLinkHtml(url) {
+    return `<a href="${esc(url)}" target="_blank" rel="noopener" class="page-link" title="${esc(url)}">${esc(shortPath(url))}</a>`;
+}
+
+// ── Table: filtering & sorting ───────────────────────────────────────────────
+function renderTable() {
+    const tbody = document.querySelector('#comp-table tbody');
+    tbody.innerHTML = '';
+
+    let comps = SUMMARY.components.filter(c => !searchQuery || c.name.toLowerCase().includes(searchQuery));
+    comps = comps.slice().sort((a, b) => {
+        if (sortCol === 'comp') return sortDir * a.name.localeCompare(b.name);
+        const av = sortCol === 'occ' ? a.occurrences : a.pages.length;
+        const bv = sortCol === 'occ' ? b.occurrences : b.pages.length;
+        return sortDir * (av - bv);
+    });
+    document.getElementById('visible-count').textContent = `${comps.length} components`;
+
+    for (const c of comps) {
+        const pct = SUMMARY.total_pages ? (c.pages.length / SUMMARY.total_pages * 100) : 0;
+        const shotBtn = c.shot_count
+            ? `<button class="shot-btn" onclick="openModal('${esc(c.folder)}')">&#128247; ${c.shot_count}</button>`
+            : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="comp-cell">${esc(c.name)}${shotBtn}</td>
+            <td class="num">${c.occurrences}</td>
+            <td class="num">${c.pages.length}</td>
+            <td>
+                <div class="cov-wrap">
+                    <div class="cov-bar-bg"><div class="cov-bar" style="width:${pct.toFixed(1)}%"></div></div>
+                    <span class="cov-pct">${pct.toFixed(0)}%</span>
+                </div>
+            </td>`;
+        tbody.appendChild(row);
+
+        const preview = c.pages.slice(0, 5), extra = c.pages.slice(5);
+        const expand = extra.length
+            ? `<details class="pages-more"><summary>+${extra.length.toLocaleString()} more</summary>
+                 <div class="pages-grid">${extra.map(pageLinkHtml).join('')}</div></details>`
+            : '';
+        const pagesRow = document.createElement('tr');
+        pagesRow.className = 'pages-row';
+        pagesRow.innerHTML = `<td colspan="4"><div class="pages-grid">${preview.map(pageLinkHtml).join('')}</div>${expand}</td>`;
+        tbody.appendChild(pagesRow);
+    }
+
+    const totalOcc = SUMMARY.components.reduce((s, c) => s + c.occurrences, 0);
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `<td>TOTAL</td><td class="num">${totalOcc}</td><td class="num">${SUMMARY.total_pages}</td><td></td>`;
+    tbody.appendChild(totalRow);
+}
+
+document.getElementById('search').addEventListener('input', e => {
+    searchQuery = e.target.value.toLowerCase();
+    if (SUMMARY) renderTable();
+});
+
 document.querySelectorAll('thead th[data-col]').forEach(th => {
     th.addEventListener('click', () => {
         if (sortCol === th.dataset.col) { sortDir *= -1; }
@@ -651,50 +1139,98 @@ document.querySelectorAll('thead th[data-col]').forEach(th => {
         document.querySelectorAll('thead th').forEach(t =>
             t.classList.remove('sorted-asc', 'sorted-desc'));
         th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
-        sortTable();
+        if (SUMMARY) renderTable();
     });
 });
 
-function sortTable() {
-    const tbody    = document.querySelector('tbody');
-    const totalRow = document.querySelector('tr.total-row');
-    rows.slice().sort((a, b) => {
-        if (sortCol === 'comp') return sortDir * a.dataset.comp.localeCompare(b.dataset.comp);
-        return sortDir * ((parseFloat(a.dataset[sortCol]) || 0) - (parseFloat(b.dataset[sortCol]) || 0));
-    }).forEach(row => {
-        tbody.appendChild(row);
-        subRows.filter(sr => sr.dataset.parent === row.dataset.comp)
-               .forEach(sr => tbody.appendChild(sr));
-    });
-    if (totalRow) tbody.appendChild(totalRow);
-    applyFilters();
+// ── Pages section — two accordions ───────────────────────────────────────────
+function renderPagesSection() {
+    const found    = SUMMARY.page_results.filter(r => r.components.length);
+    const notFound = SUMMARY.page_results.filter(r => !r.components.length);
+
+    document.getElementById('found-count').textContent    = `${found.length} page${found.length !== 1 ? 's' : ''}`;
+    document.getElementById('notfound-count').textContent = `${notFound.length} page${notFound.length !== 1 ? 's' : ''}`;
+
+    document.getElementById('found-body').innerHTML = found.length ? found.map(r => `
+        <div class="page-card">
+            <div class="page-card-header">
+                <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(shortPath(r.url))}</a>
+                <span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">${r.components.length} component(s)</span>
+            </div>
+            <div class="page-card-body">${r.components.map(c => `<span class="comp-tag">${esc(c)}</span>`).join('')}</div>
+        </div>`).join('') : "<p style='color:#94a3b8;font-size:12px'>None</p>";
+
+    document.getElementById('notfound-body').innerHTML = notFound.length
+        ? `<div class="empty-links">${notFound.map(r =>
+            `<a href="${esc(r.url)}" class="empty-link" target="_blank" rel="noopener">${esc(shortPath(r.url))}</a>`).join('')}</div>`
+        : "<p style='color:#94a3b8;font-size:12px'>None</p>";
 }
 
 // ── Screenshot modal ─────────────────────────────────────────────────────────
-const SCREENSHOTS = JSON.parse(document.getElementById('screenshot-data').textContent);
+// Opens straight into a thumbnail grid of every screenshot for the component;
+// clicking a thumbnail switches to a single-image viewer (prev/next, and a
+// link to the live page it was captured from) starting at that image. Each
+// component's screenshot list is only fetched the first time its modal is
+// opened, then cached, so the report doesn't pay for data it never displays.
 const modal       = document.getElementById('screenshot-modal');
-const modalImg    = modal.querySelector('.modal-img');
 const modalTitle  = modal.querySelector('.modal-title');
+const modalGrid   = modal.querySelector('.modal-grid');
+const modalViewer = modal.querySelector('.modal-viewer');
+const modalImg    = modal.querySelector('.modal-img');
 const modalCap    = modal.querySelector('.modal-caption');
+const modalPageLink = modal.querySelector('.modal-page-link');
 const modalCtr    = modal.querySelector('.modal-counter');
 const modalPrev   = modal.querySelector('.modal-prev');
 const modalNext   = modal.querySelector('.modal-next');
 
+const _dataCache = {};
 let _images = [], _idx = 0;
 
-function openModal(folder) {
-    _images = SCREENSHOTS[folder] || [];
-    if (!_images.length) return;
-    _idx = 0;
-    modalTitle.textContent = folder.replace(/_/g, ' ');
-    _renderModal();
-    modal.removeAttribute('hidden');
+function loadComponentData(folder) {
+    if (_dataCache[folder]) return Promise.resolve(_dataCache[folder]);
+    return fetch(`${DIST_BASE}/${folder}/data.json`)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => { _dataCache[folder] = d.shots; return d.shots; });
 }
 
-function _renderModal() {
-    const src = _images[_idx];
-    modalImg.src = src;
-    modalCap.textContent = src.split('/').pop().replace(/\\.png$/i, '');
+function openModal(folder) {
+    modalTitle.textContent = folder.replace(/_/g, ' ');
+    modalGrid.innerHTML = "<p style='color:#94a3b8;font-size:12px;padding:8px;'>Loading…</p>";
+    modalGrid.hidden = false;
+    modalViewer.hidden = true;
+    modal.removeAttribute('hidden');
+
+    loadComponentData(folder).then(shots => {
+        _images = shots;
+        _showGrid();
+    }).catch(err => {
+        modalGrid.innerHTML = `<p style="color:#b91c1c;font-size:12px;padding:8px;">Failed to load screenshots (${esc(err)})</p>`;
+    });
+}
+
+function _showGrid() {
+    modalGrid.innerHTML = _images.map((img, i) => `
+        <button class="thumb-item" onclick="openViewer(${i})">
+            <img src="${esc(img.thumb)}" alt="${esc(img.caption)}" loading="lazy">
+            <span class="thumb-cap">${esc(img.caption)}</span>
+        </button>`).join('');
+    modalGrid.hidden = false;
+    modalViewer.hidden = true;
+}
+
+function openViewer(i) {
+    _idx = i;
+    _renderViewer();
+    modalGrid.hidden = true;
+    modalViewer.hidden = false;
+}
+
+function _renderViewer() {
+    const img = _images[_idx];
+    modalImg.src = img.full;
+    modalCap.textContent = img.caption;
+    modalPageLink.href = img.url;
+    modalPageLink.textContent = 'View page ↗ ' + shortPath(img.url);
     modalCtr.textContent = `${_idx + 1} / ${_images.length}`;
     modalPrev.disabled = _idx === 0;
     modalNext.disabled = _idx === _images.length - 1;
@@ -702,8 +1238,10 @@ function _renderModal() {
 
 function modalNav(dir) {
     _idx = Math.max(0, Math.min(_images.length - 1, _idx + dir));
-    _renderModal();
+    _renderViewer();
 }
+
+function backToGrid() { _showGrid(); }
 
 function closeModal() { modal.setAttribute('hidden', ''); }
 
@@ -711,176 +1249,47 @@ modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
 document.addEventListener('keydown', e => {
     if (modal.hasAttribute('hidden')) return;
-    if (e.key === 'Escape')      closeModal();
-    if (e.key === 'ArrowLeft')   modalNav(-1);
-    if (e.key === 'ArrowRight')  modalNav(1);
+    if (e.key === 'Escape') {
+        if (!modalViewer.hidden) backToGrid();
+        else closeModal();
+    }
+    if (!modalViewer.hidden) {
+        if (e.key === 'ArrowLeft')  modalNav(-1);
+        if (e.key === 'ArrowRight') modalNav(1);
+    }
 });
 """
 
 
-def _build_html(
-    components: list[tuple[str, list[str]]],
-    page_results: list[dict],
-    total_pages: int,
-    screenshots_by_comp: dict[str, list[str]],
-    region: str = "",
-) -> str:
-    now         = datetime.now().strftime("%Y-%m-%d %H:%M")
-    region_label = region.upper() if region else "Canon Shop"
-    pages_with_data   = sum(1 for r in page_results if r["components"])
-    total_occurrences = sum(len(pages) for _, pages in components)
-
-    # ── Summary chips ────────────────────────────────────────────────────────
-    chips_html = f"""
-        <div class="chip" style="background:#eff6ff;color:#1e40af;">
-            <span class="chip-num">{total_pages}</span>
-            <span class="chip-lbl">Pages Crawled</span>
-        </div>
-        <div class="chip" style="background:#f0fdf4;color:#166534;">
-            <span class="chip-num">{pages_with_data}</span>
-            <span class="chip-lbl">Pages with Components</span>
-        </div>
-        <div class="chip" style="background:#f1f5f9;color:#334155;">
-            <span class="chip-num">{len(components)}</span>
-            <span class="chip-lbl">Unique Components</span>
-        </div>
-        <div class="chip" style="background:#fef9c3;color:#854d0e;">
-            <span class="chip-num">{total_occurrences}</span>
-            <span class="chip-lbl">Total Occurrences</span>
-        </div>"""
-
-    # ── Component table rows ─────────────────────────────────────────────────
-    rows_html = ""
-    for comp, pages in components:
-        comp_esc    = _esc(comp)
-        folder_name = _comp_to_folder(comp)
-        page_cnt    = len(pages)
-        pct         = page_cnt / total_pages * 100 if total_pages else 0
-        occ         = sum(r["components"].count(comp) for r in page_results)
-
-        cov_html = (
-            f'<div class="cov-wrap">'
-            f'<div class="cov-bar-bg"><div class="cov-bar" style="width:{pct:.1f}%"></div></div>'
-            f'<span class="cov-pct">{pct:.0f}%</span>'
-            f'</div>'
-        )
-
-        shot_count = len(screenshots_by_comp.get(folder_name, []))
-        shot_btn   = (
-            f'<button class="shot-btn" onclick="openModal(\'{folder_name}\')">'
-            f'&#128247; {shot_count}</button>'
-            if shot_count else ""
-        )
-
-        rows_html += (
-            f'<tr data-comp="{comp_esc}" data-pages="{page_cnt}" data-occ="{occ}">'
-            f'<td class="comp-cell">{comp_esc}{shot_btn}</td>'
-            f'<td class="num">{occ}</td>'
-            f'<td class="num">{page_cnt}</td>'
-            f'<td>{cov_html}</td>'
-            f'</tr>\n'
-        )
-
-        def page_link(u: str) -> str:
-            path = u.split("usa.canon.com")[-1] if "usa.canon.com" in u else u
-            return (f'<a href="{_esc(u)}" target="_blank" rel="noopener" '
-                    f'class="page-link" title="{_esc(u)}">{_esc(path)}</a>')
-
-        preview   = pages[:5]
-        extra     = pages[5:]
-        prev_html = "\n".join(page_link(u) for u in preview)
-        expand    = ""
-        if extra:
-            extra_html = "\n".join(page_link(u) for u in extra)
-            expand = (
-                f'<details class="pages-more">'
-                f'<summary>+{len(extra):,} more</summary>'
-                f'<div class="pages-grid">{extra_html}</div>'
-                f'</details>'
-            )
-        rows_html += (
-            f'<tr class="pages-row" data-parent="{comp_esc}">'
-            f'<td colspan="4"><div class="pages-grid">{prev_html}</div>{expand}</td>'
-            f'</tr>\n'
-        )
-
-    rows_html += (
-        f'<tr class="total-row"><td>TOTAL</td>'
-        f'<td class="num">{total_occurrences}</td>'
-        f'<td class="num">{total_pages}</td><td></td></tr>\n'
-    )
-
-    # ── Pages section — two accordions ──────────────────────────────────────
-    found    = [r for r in page_results if r["components"]]
-    not_found = [r for r in page_results if not r["components"]]
-
-    def page_card(r: dict) -> str:
-        url  = r["url"]
-        path = url.split("usa.canon.com")[-1] if "usa.canon.com" in url else url
-        tags = "".join(f'<span class="comp-tag">{_esc(c)}</span>' for c in r["components"])
-        return (
-            f'<div class="page-card">'
-            f'<div class="page-card-header">'
-            f'<a href="{_esc(url)}" target="_blank" rel="noopener">{_esc(path)}</a>'
-            f'<span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">'
-            f'{len(r["components"])} component(s)</span>'
-            f'</div>'
-            f'<div class="page-card-body">{tags}</div>'
-            f'</div>'
-        )
-
-    found_body    = "\n".join(page_card(r) for r in found) if found else "<p style='color:#94a3b8;font-size:12px'>None</p>"
-    no_found_body = (
-        '<div class="empty-links">'
-        + "\n".join(
-            f'<a href="{_esc(r["url"])}" class="empty-link" target="_blank" rel="noopener">'
-            f'{_esc(r["url"].split("usa.canon.com")[-1] if "usa.canon.com" in r["url"] else r["url"])}'
-            f'</a>'
-            for r in not_found
-        )
-        + "</div>"
-    ) if not_found else "<p style='color:#94a3b8;font-size:12px'>None</p>"
-
-    pages_section = f"""
-<details class="accordion" open>
-  <summary>
-    Pages with components found
-    <span class="summary-count">{len(found)} page{"s" if len(found) != 1 else ""}</span>
-  </summary>
-  <div class="accordion-body">{found_body}</div>
-</details>
-<details class="accordion">
-  <summary>
-    Pages with no components found
-    <span class="summary-count">{len(not_found)} page{"s" if len(not_found) != 1 else ""}</span>
-  </summary>
-  <div class="accordion-body">{no_found_body}</div>
-</details>"""
-
-    # ── Screenshot data embedded as JSON ────────────────────────────────────
-    shot_json = json.dumps(screenshots_by_comp, ensure_ascii=False)
-
+def _build_html(dist_dir: Path) -> str:
+    """
+    A thin static shell — no crawl data is embedded here. Everything shown
+    is fetched client-side from dist_dir/summary.json (high-level breakdown)
+    and dist_dir/{folder}/data.json (per-component screenshots, lazy-loaded).
+    This means the template itself can be edited and reloaded in the browser
+    without re-running a crawl, as long as a previous run's JSON is present.
+    """
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{region_label} — Canon Component Discovery</title>
+<title>Component Discovery</title>
 <style>{REPORT_CSS}</style>
 </head>
 <body>
 
 <div class="top-bar">
-  <h1>{region_label} — Canon Component Discovery</h1>
-  <div class="meta">Generated {now} &nbsp;·&nbsp; {total_pages} PDP pages crawled &nbsp;·&nbsp; #pdp-description &gt; .ccMaxWidth immediate children</div>
+  <h1 id="report-title">Component Discovery</h1>
+  <div class="meta" id="report-meta">Loading…</div>
 </div>
 
 <div class="content">
-  <div class="summary-chips">{chips_html}</div>
+  <div class="summary-chips" id="summary-chips"></div>
 
   <div class="controls">
     <input id="search" type="text" placeholder="Search components…">
-    <span class="visible-count" id="visible-count">{len(components)} components</span>
+    <span class="visible-count" id="visible-count"></span>
   </div>
 
   <div class="table-wrap">
@@ -888,18 +1297,23 @@ def _build_html(
     <thead>
       <tr>
         <th data-col="comp">Component Class</th>
-        <th data-col="occ" class="sorted-desc" style="text-align:right">Occurrences</th>
-        <th data-col="pages" style="text-align:right">Pages</th>
+        <th data-col="occ" style="text-align:right">Occurrences</th>
+        <th data-col="pages" class="sorted-desc" style="text-align:right">Pages</th>
         <th class="no-sort">Coverage</th>
       </tr>
     </thead>
-    <tbody>
-{rows_html}
-    </tbody>
+    <tbody></tbody>
   </table>
   </div>
 
-  {pages_section}
+  <details class="accordion" open>
+    <summary>Pages with components found <span class="summary-count" id="found-count"></span></summary>
+    <div class="accordion-body" id="found-body"></div>
+  </details>
+  <details class="accordion">
+    <summary>Pages with no components found <span class="summary-count" id="notfound-count"></span></summary>
+    <div class="accordion-body" id="notfound-body"></div>
+  </details>
 </div>
 
 <!-- Screenshot modal -->
@@ -907,20 +1321,121 @@ def _build_html(
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <div class="modal-title"></div>
-    <div class="modal-img-wrap">
-      <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
-      <img class="modal-img" src="" alt="">
-      <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-caption"></div>
-      <div class="modal-counter"></div>
+
+    <div class="modal-grid"></div>
+
+    <div class="modal-viewer" hidden>
+      <button class="modal-back" onclick="backToGrid()">&#8249; All screenshots</button>
+      <div class="modal-img-wrap">
+        <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
+        <img class="modal-img" src="" alt="">
+        <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-caption"></div>
+        <a class="modal-page-link" href="#" target="_blank" rel="noopener"></a>
+        <div class="modal-counter"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<script id="screenshot-data" type="application/json">{shot_json}</script>
+<script>const DIST_BASE = {json.dumps(dist_dir.as_posix())};</script>
 <script>{REPORT_JS}</script>
+</body>
+</html>
+"""
+
+
+INDEX_CSS = """
+.index-card-pending { opacity: 0.6; }
+.index-card-pending .page-card-header { cursor: default; }
+.index-card-pending code {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 4px;
+    padding: 1px 5px; font-family: monospace; font-size: 11px;
+}
+"""
+
+INDEX_JS = """
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+async function loadIndex() {
+    const grid = document.getElementById('index-grid');
+    let patterns;
+    try {
+        patterns = await (await fetch('patterns.json')).json();
+    } catch (err) {
+        grid.innerHTML = `<p style="color:#b91c1c">Failed to load patterns.json (${esc(err)}). ` +
+            `Is this page being served over http:// rather than opened as a file?</p>`;
+        return;
+    }
+
+    const keys = Object.keys(patterns).filter(k => k !== 'defaults');
+    grid.innerHTML = keys.map(() => "<div class='page-card'><div class='page-card-header'>Loading…</div></div>").join('');
+
+    const cards = await Promise.all(keys.map(async key => {
+        const cfg = patterns[key];
+        let summary = null;
+        try {
+            const r = await fetch(`dist/${key}/summary.json`);
+            if (r.ok) summary = await r.json();
+        } catch (err) { /* not generated yet */ }
+
+        if (summary) {
+            return `
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <a href="${esc(key)}.html">${esc(summary.label || cfg.label || key)}</a>
+                    </div>
+                    <div class="page-card-body" style="color:#64748b;font-size:11px;">
+                        Generated ${esc(summary.generated)} · ${summary.total_pages} page(s) crawled · ${summary.components.length} component(s)
+                    </div>
+                </div>`;
+        }
+        return `
+            <div class="page-card index-card-pending">
+                <div class="page-card-header">${esc(cfg.label || key)}</div>
+                <div class="page-card-body" style="color:#64748b;font-size:11px;">
+                    Not generated yet — run: <code>python3 analyze.py --pattern ${esc(key)}</code>
+                </div>
+            </div>`;
+    }));
+
+    grid.innerHTML = cards.join('') || "<p style='color:#94a3b8;font-size:12px'>No patterns defined in patterns.json</p>";
+}
+
+loadIndex();
+"""
+
+
+def _build_index_html() -> str:
+    """
+    A static shell listing every pattern from patterns.json. Each one links
+    to its generated report if dist/{pattern}/summary.json exists (checked
+    live, client-side), or shows as not-yet-generated otherwise.
+    """
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Component Discovery — Reports</title>
+<style>{REPORT_CSS}{INDEX_CSS}</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Component Discovery — Reports</h1>
+  <div class="meta">Patterns from patterns.json</div>
+</div>
+
+<div class="content">
+  <div class="index-grid" id="index-grid"></div>
+</div>
+
+<script>{INDEX_JS}</script>
 </body>
 </html>
 """
@@ -932,7 +1447,7 @@ def _build_html(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Discover component classes on Canon shop PDP pages.",
+        description="Discover components on a site's pages.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -954,8 +1469,14 @@ Examples:
                         help="Pages to crawl: a number, or 'all' (default: 20)")
     parser.add_argument("--sample", default="",
                         help="Randomly sample N pages from the full sitemap URL pool")
+    parser.add_argument("--concurrency", type=int, default=DEFAULT_CONCURRENCY,
+                        help=f"Pages to crawl in parallel (default: {DEFAULT_CONCURRENCY})")
     parser.add_argument("--out", default="",
                         help="Output HTML file (default: {pattern}.html)")
+    parser.add_argument("--no-serve", action="store_true",
+                        help="Don't start a local server / open the browser after crawling")
+    parser.add_argument("--index", action="store_true",
+                        help="Generate index.html linking to every pattern's report, and exit (skips crawling)")
     args = parser.parse_args()
 
     # ── --list-patterns ──────────────────────────────────────────────────────
@@ -963,17 +1484,31 @@ Examples:
         patterns = load_patterns()
         print(f"Available patterns ({PATTERNS_FILE}):\n")
         for key, cfg in patterns.items():
+            if key == "defaults":
+                continue
             print(f"  {key:<20} {cfg.get('label', '')}")
             print(f"  {'':20} sitemap:        {cfg.get('sitemap', '')}")
             print(f"  {'':20} url_filter:     {cfg.get('url_filter', '')}")
-            print(f"  {'':20} container:      {cfg.get('container', '')}")
+            container = cfg.get('container', '')
+            container_disp = " or ".join(container) if isinstance(container, list) else container
+            print(f"  {'':20} container:      {container_disp}")
             print(f"  {'':20} component_root: {cfg.get('component_root', '')}\n")
+        raise SystemExit(0)
+
+    # ── --index ──────────────────────────────────────────────────────────────
+    if args.index:
+        index_path = Path("index.html")
+        index_path.write_text(_build_index_html())
+        print(f"Index → {index_path}")
+        if not args.no_serve:
+            _serve_report(index_path)
         raise SystemExit(0)
 
     if not args.pattern:
         parser.error("--pattern is required (use --list-patterns to see options)")
 
-    pattern = get_pattern(args.pattern)
+    pattern  = get_pattern(args.pattern)
+    defaults = get_defaults()
     label       = pattern.get("label", args.pattern)
     sitemap_url = pattern["sitemap"]
     url_filter  = pattern["url_filter"]
@@ -982,14 +1517,19 @@ Examples:
     pre_click   = pattern.get("pre_click", [])
 
     if "sources" in pattern:
-        sources = pattern["sources"]
+        sources = [_merge_source_defaults(s, defaults) for s in pattern["sources"]]
     else:
-        sources = [{
-            "container":      pattern["container"],
-            "component_root": pattern["component_root"],
-            "mode":           pattern.get("mode", "children"),
+        sources = [_merge_source_defaults({
+            "container":       pattern["container"],
+            "component_root":  pattern["component_root"],
+            "mode":            pattern.get("mode", "children"),
             "child_selectors": pattern.get("child_selectors", []),
-        }]
+            "identify_by":     pattern.get("identify_by", "class"),
+            "identify_attr":   pattern.get("identify_attr", ""),
+            "top_level_only":  pattern.get("top_level_only", False),
+            "exclude_selectors": pattern.get("exclude_selectors", []),
+            "nested_captures": pattern.get("nested_captures", {}),
+        }, defaults)]
 
     out_path = Path(args.out) if args.out else Path(f"{args.pattern}.html")
     dist_dir = Path("dist") / args.pattern
@@ -998,9 +1538,14 @@ Examples:
     print(f"Preparing {dist_dir}/ …")
     clear_dist(dist_dir)
 
+    if args.concurrency < 1:
+        print(f"ERROR: --concurrency must be at least 1, got {args.concurrency}")
+        raise SystemExit(1)
+
     if args.url:
         urls, results = asyncio.run(collect_and_crawl(
             dist_dir, sources, url_override=args.url, pre_click=pre_click,
+            concurrency=args.concurrency,
         ))
     elif args.sample:
         try:
@@ -1012,6 +1557,7 @@ Examples:
             dist_dir, sources,
             sitemap_url=sitemap_url, url_filter=url_filter, url_exclude=url_exclude,
             sample=sample, pre_click=pre_click, url_rewrite=url_rewrite,
+            concurrency=args.concurrency,
         ))
     else:
         raw = args.limit.strip().lower()
@@ -1028,21 +1574,15 @@ Examples:
             dist_dir, sources,
             sitemap_url=sitemap_url, url_filter=url_filter, url_exclude=url_exclude,
             limit=limit, pre_click=pre_click, url_rewrite=url_rewrite,
+            concurrency=args.concurrency,
         ))
         if not urls:
             print(f"No URLs matching '{url_filter}' found — exiting.")
             raise SystemExit(1)
 
-    # Aggregate: component -> deduplicated list of pages it appears on
-    component_pages: dict[str, list[str]] = defaultdict(list)
-    for r in results:
-        seen_on_page: set[str] = set()
-        for comp in r["components"]:
-            if comp not in seen_on_page:
-                component_pages[comp].append(r["url"])
-                seen_on_page.add(comp)
-
-    sorted_components = sorted(component_pages.items(), key=lambda x: -len(x[1]))
+    sorted_components, _component_occ, shots_by_folder = write_json_outputs(
+        dist_dir, label, len(urls), results,
+    )
 
     print(f"\n{'─'*60}")
     print(f"  {'COMPONENT':<50} {'PAGES':>6}")
@@ -1050,13 +1590,15 @@ Examples:
     for comp, pages in sorted_components:
         print(f"  {comp:<50} {len(pages):>6}")
 
-    screenshots_by_comp = scan_screenshots(dist_dir)
-
-    out_path.write_text(_build_html(sorted_components, results, len(urls), screenshots_by_comp, label))
-    print(f"\nReport       → {out_path}  (open with: open {out_path})")
+    out_path.write_text(_build_html(dist_dir))
+    print(f"\nReport       → {out_path}")
+    print(f"Data         → {dist_dir}/summary.json, {dist_dir}/{{component}}/data.json")
     print(f"Screenshots  → {dist_dir.resolve()}/")
-    total_shots = sum(len(v) for v in screenshots_by_comp.values())
-    print(f"               {total_shots} screenshot(s) across {len(screenshots_by_comp)} component folder(s)")
+    total_shots = sum(len(v) for v in shots_by_folder.values())
+    print(f"               {total_shots} screenshot(s) across {len(shots_by_folder)} component folder(s)")
+
+    if not args.no_serve:
+        _serve_report(out_path)
 
 
 if __name__ == "__main__":
