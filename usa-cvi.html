@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>USA — CVI — Canon Component Discovery</title>
+<title>Component Discovery</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -182,38 +182,55 @@ details.accordion[open] > summary::after { content: '▼'; }
 .modal-nav:disabled { opacity: 0.25; cursor: default; }
 .modal-footer { text-align: center; }
 .modal-caption { font-family: monospace; font-size: 12px; color: #475569; }
+.modal-page-link {
+    display: inline-block; margin-top: 2px; font-size: 11px;
+    color: #3b82f6; text-decoration: none;
+}
+.modal-page-link:hover { text-decoration: underline; }
 .modal-counter { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Modal — thumbnail grid */
+.modal-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px; width: 720px; max-height: 70vh; overflow-y: auto; padding: 2px;
+}
+.modal-grid[hidden] { display: none; }
+.thumb-item {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+    cursor: pointer; padding: 0; overflow: hidden; text-align: left;
+}
+.thumb-item:hover { border-color: #93c5fd; }
+.thumb-item img {
+    width: 100%; height: 90px; object-fit: cover; display: block;
+}
+.thumb-item .thumb-cap {
+    display: block; padding: 5px 7px; font-size: 10px; font-family: monospace;
+    color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Modal — single-image viewer */
+.modal-viewer { display: flex; flex-direction: column; gap: 10px; }
+.modal-viewer[hidden] { display: none; }
+.modal-back {
+    background: none; border: none; color: #3b82f6; cursor: pointer;
+    font-size: 12px; padding: 0; text-align: left; margin-bottom: -4px;
+}
+.modal-back:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <h1>USA — CVI — Canon Component Discovery</h1>
-  <div class="meta">Generated 2026-06-12 08:34 &nbsp;·&nbsp; 50 PDP pages crawled &nbsp;·&nbsp; #pdp-description &gt; .ccMaxWidth immediate children</div>
+  <h1 id="report-title">Component Discovery</h1>
+  <div class="meta" id="report-meta">Loading…</div>
 </div>
 
 <div class="content">
-  <div class="summary-chips">
-        <div class="chip" style="background:#eff6ff;color:#1e40af;">
-            <span class="chip-num">50</span>
-            <span class="chip-lbl">Pages Crawled</span>
-        </div>
-        <div class="chip" style="background:#f0fdf4;color:#166534;">
-            <span class="chip-num">50</span>
-            <span class="chip-lbl">Pages with Components</span>
-        </div>
-        <div class="chip" style="background:#f1f5f9;color:#334155;">
-            <span class="chip-num">8</span>
-            <span class="chip-lbl">Unique Components</span>
-        </div>
-        <div class="chip" style="background:#fef9c3;color:#854d0e;">
-            <span class="chip-num">91</span>
-            <span class="chip-lbl">Total Occurrences</span>
-        </div></div>
+  <div class="summary-chips" id="summary-chips"></div>
 
   <div class="controls">
     <input id="search" type="text" placeholder="Search components…">
-    <span class="visible-count" id="visible-count">8 components</span>
+    <span class="visible-count" id="visible-count"></span>
   </div>
 
   <div class="table-wrap">
@@ -221,178 +238,23 @@ details.accordion[open] > summary::after { content: '▼'; }
     <thead>
       <tr>
         <th data-col="comp">Component Class</th>
-        <th data-col="occ" class="sorted-desc" style="text-align:right">Occurrences</th>
-        <th data-col="pages" style="text-align:right">Pages</th>
+        <th data-col="occ" style="text-align:right">Occurrences</th>
+        <th data-col="pages" class="sorted-desc" style="text-align:right">Pages</th>
         <th class="no-sort">Coverage</th>
       </tr>
     </thead>
-    <tbody>
-<tr data-comp="column-control" data-pages="50" data-occ="156"><td class="comp-cell">column-control<button class="shot-btn" onclick="openModal('column-control')">&#128247; 151</button></td><td class="num">156</td><td class="num">50</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:100.0%"></div></div><span class="cov-pct">100%</span></div></td></tr>
-<tr class="pages-row" data-parent="column-control"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html</a></div><details class="pages-more"><summary>+45 more</summary><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/about-us.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/about-us.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/about-us.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/aftermarket-services.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/aftermarket-services.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/aftermarket-services.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/custom-manufacturing.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/custom-manufacturing.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/custom-manufacturing.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/mold-making.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/mold-making.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/mold-making.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/achieve-more-with-less.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/achieve-more-with-less.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/achieve-more-with-less.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/bring-us-your-toughest-challenges.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/bring-us-your-toughest-challenges.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/bring-us-your-toughest-challenges.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/reimagine-efficiency-by-turning-cooling-time-into-production-time.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/reimagine-efficiency-by-turning-cooling-time-into-production-time.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/reimagine-efficiency-by-turning-cooling-time-into-production-time.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-process-animation.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-process-animation.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-process-animation.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/privacy-statement.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/privacy-statement.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/privacy-statement.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/sitemap.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/sitemap.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/sitemap.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/terms-of-use.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/terms-of-use.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/terms-of-use.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/your-privacy-rights.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/your-privacy-rights.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/your-privacy-rights.html</a></div></details></td></tr>
-<tr data-comp="hero" data-pages="21" data-occ="22"><td class="comp-cell">hero<button class="shot-btn" onclick="openModal('hero')">&#128247; 20</button></td><td class="num">22</td><td class="num">21</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:42.0%"></div></div><span class="cov-pct">42%</span></div></td></tr>
-<tr class="pages-row" data-parent="hero"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html</a></div><details class="pages-more"><summary>+16 more</summary><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html</a></div></details></td></tr>
-<tr data-comp="experiencefragment" data-pages="13" data-occ="13"><td class="comp-cell">experiencefragment<button class="shot-btn" onclick="openModal('experiencefragment')">&#128247; 13</button></td><td class="num">13</td><td class="num">13</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:26.0%"></div></div><span class="cov-pct">26%</span></div></td></tr>
-<tr class="pages-row" data-parent="experiencefragment"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html</a></div><details class="pages-more"><summary>+8 more</summary><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html</a></div></details></td></tr>
-<tr data-comp="title" data-pages="2" data-occ="2"><td class="comp-cell">title</td><td class="num">2</td><td class="num">2</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:4.0%"></div></div><span class="cov-pct">4%</span></div></td></tr>
-<tr class="pages-row" data-parent="title"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html</a></div></td></tr>
-<tr data-comp="accordion" data-pages="2" data-occ="2"><td class="comp-cell">accordion<button class="shot-btn" onclick="openModal('accordion')">&#128247; 2</button></td><td class="num">2</td><td class="num">2</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:4.0%"></div></div><span class="cov-pct">4%</span></div></td></tr>
-<tr class="pages-row" data-parent="accordion"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html</a>
-<a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html</a></div></td></tr>
-<tr data-comp="tabs" data-pages="1" data-occ="1"><td class="comp-cell">tabs<button class="shot-btn" onclick="openModal('tabs')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:2.0%"></div></div><span class="cov-pct">2%</span></div></td></tr>
-<tr class="pages-row" data-parent="tabs"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html</a></div></td></tr>
-<tr data-comp="fixedColumnCardLayout" data-pages="1" data-occ="9"><td class="comp-cell">fixedColumnCardLayout<button class="shot-btn" onclick="openModal('fixedColumnCardLayout')">&#128247; 5</button></td><td class="num">9</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:2.0%"></div></div><span class="cov-pct">2%</span></div></td></tr>
-<tr class="pages-row" data-parent="fixedColumnCardLayout"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html</a></div></td></tr>
-<tr data-comp="bio" data-pages="1" data-occ="1"><td class="comp-cell">bio<button class="shot-btn" onclick="openModal('bio')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:2.0%"></div></div><span class="cov-pct">2%</span></div></td></tr>
-<tr class="pages-row" data-parent="bio"><td colspan="4"><div class="pages-grid"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html" target="_blank" rel="noopener" class="page-link" title="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html</a></div></td></tr>
-<tr class="total-row"><td>TOTAL</td><td class="num">91</td><td class="num">50</td><td></td></tr>
-
-    </tbody>
+    <tbody></tbody>
   </table>
   </div>
 
-  
-<details class="accordion" open>
-  <summary>
-    Pages with components found
-    <span class="summary-count">50 pages</span>
-  </summary>
-  <div class="accordion-body"><div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/community-involvement.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/corporate-philosophy.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/environmental.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">6 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/iso-certifications.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/legal.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">title</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/message-from-the-president.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/privacy-statement.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">accordion</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/about-us/terms-of-use.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">accordion</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/job-opportunities.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/careers/working-at-canon-virginia.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/contact-us/locations.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/about-us.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/about-us.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">7 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/aftermarket-services.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/aftermarket-services.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">7 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/contact-a-rep.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/custom-manufacturing.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/custom-manufacturing.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">8 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/mold-making.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/mold-making.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">8 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">15 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">tabs</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">fixedColumnCardLayout</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/achieve-more-with-less.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/achieve-more-with-less.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/bring-us-your-toughest-challenges.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/bring-us-your-toughest-challenges.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/canon-virginia-inc-brings-collaboration-to-the-table.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/going-small-to-empower-big-change-in-your-industry.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">6 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/is-traditional-dfm-enough.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/manufacturing-carbon-nanotubes.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/produce-precision-microfluidics-at-scale.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/reimagine-efficiency-by-turning-cooling-time-into-production-time.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/reimagine-efficiency-by-turning-cooling-time-into-production-time.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/remarkably-efficient-uniquely-canon.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/secrets-in-advanced-manufacturing.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">6 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span><span class="comp-tag">bio</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-evaluation.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-process-animation.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/shuttle-mold-system-process-animation.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/still-on-hold-how-to-make-part-cooling-time-more-productive.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-manufacturing-alliance-podcast.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/the-power-of-partnerships.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/manufacturing-services/resources/transform-your-molding-capabilities.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span><span class="comp-tag">experiencefragment</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/privacy-statement.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/privacy-statement.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">1 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/sitemap.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/sitemap.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/becoming-a-supplier.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/logistics-and-international-trade.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/procurement-policy.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/suppliers/quality-cost-delivery-environment.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">hero</span><span class="comp-tag">title</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/terms-of-use.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/terms-of-use.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span><span class="comp-tag">column-control</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/your-privacy-rights.html" target="_blank" rel="noopener">https://www.cvi.canon.com/content/canon/cvi/cvi-homepage/your-privacy-rights.html</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">1 component(s)</span></div><div class="page-card-body"><span class="comp-tag">column-control</span></div></div></div>
-</details>
-<details class="accordion">
-  <summary>
-    Pages with no components found
-    <span class="summary-count">0 pages</span>
-  </summary>
-  <div class="accordion-body"><p style='color:#94a3b8;font-size:12px'>None</p></div>
-</details>
+  <details class="accordion" open>
+    <summary>Pages with components found <span class="summary-count" id="found-count"></span></summary>
+    <div class="accordion-body" id="found-body"></div>
+  </details>
+  <details class="accordion">
+    <summary>Pages with no components found <span class="summary-count" id="notfound-count"></span></summary>
+    <div class="accordion-body" id="notfound-body"></div>
+  </details>
 </div>
 
 <!-- Screenshot modal -->
@@ -400,43 +262,148 @@ details.accordion[open] > summary::after { content: '▼'; }
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <div class="modal-title"></div>
-    <div class="modal-img-wrap">
-      <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
-      <img class="modal-img" src="" alt="">
-      <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-caption"></div>
-      <div class="modal-counter"></div>
+
+    <div class="modal-grid"></div>
+
+    <div class="modal-viewer" hidden>
+      <button class="modal-back" onclick="backToGrid()">&#8249; All screenshots</button>
+      <div class="modal-img-wrap">
+        <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
+        <img class="modal-img" src="" alt="">
+        <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-caption"></div>
+        <a class="modal-page-link" href="#" target="_blank" rel="noopener"></a>
+        <div class="modal-counter"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<script id="screenshot-data" type="application/json">{"accordion": ["dist/usa-cvi/accordion/privacy-statement.html.png", "dist/usa-cvi/accordion/terms-of-use.html.png"], "bio": ["dist/usa-cvi/bio/secrets-in-advanced-manufacturing.html.png"], "column-control": ["dist/usa-cvi/column-control/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html-1.png", "dist/usa-cvi/column-control/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html-2.png", "dist/usa-cvi/column-control/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html-3.png", "dist/usa-cvi/column-control/Design-for-Maintenance-Five-Tips-to-Extend-Tool-Life-and-Simplify-Maintenance.html-4.png", "dist/usa-cvi/column-control/about-us.html-1.png", "dist/usa-cvi/column-control/about-us.html-2.png", "dist/usa-cvi/column-control/about-us.html-3.png", "dist/usa-cvi/column-control/about-us.html-4.png", "dist/usa-cvi/column-control/about-us.html-5.png", "dist/usa-cvi/column-control/about-us.html-6.png", "dist/usa-cvi/column-control/about-us.html-7.png", "dist/usa-cvi/column-control/achieve-more-with-less.html-1.png", "dist/usa-cvi/column-control/achieve-more-with-less.html-2.png", "dist/usa-cvi/column-control/aftermarket-services.html-1.png", "dist/usa-cvi/column-control/aftermarket-services.html-2.png", "dist/usa-cvi/column-control/aftermarket-services.html-3.png", "dist/usa-cvi/column-control/aftermarket-services.html-4.png", "dist/usa-cvi/column-control/aftermarket-services.html-5.png", "dist/usa-cvi/column-control/aftermarket-services.html-6.png", "dist/usa-cvi/column-control/aftermarket-services.html-7.png", "dist/usa-cvi/column-control/becoming-a-supplier.html-1.png", "dist/usa-cvi/column-control/becoming-a-supplier.html-2.png", "dist/usa-cvi/column-control/bring-us-your-toughest-challenges.html-1.png", "dist/usa-cvi/column-control/bring-us-your-toughest-challenges.html-2.png", "dist/usa-cvi/column-control/canon-virginia-inc-brings-collaboration-to-the-table.html-1.png", "dist/usa-cvi/column-control/canon-virginia-inc-brings-collaboration-to-the-table.html-2.png", "dist/usa-cvi/column-control/canon-virginia-inc-brings-collaboration-to-the-table.html-3.png", "dist/usa-cvi/column-control/canon-virginia-inc-brings-collaboration-to-the-table.html-4.png", "dist/usa-cvi/column-control/canon-virginia-inc.html-1.png", "dist/usa-cvi/column-control/canon-virginia-inc.html-2.png", "dist/usa-cvi/column-control/careers.html-1.png", "dist/usa-cvi/column-control/careers.html-2.png", "dist/usa-cvi/column-control/community-involvement.html-1.png", "dist/usa-cvi/column-control/community-involvement.html-2.png", "dist/usa-cvi/column-control/contact-a-rep.html-1.png", "dist/usa-cvi/column-control/contact-a-rep.html-2.png", "dist/usa-cvi/column-control/contact-us.html-1.png", "dist/usa-cvi/column-control/contact-us.html-2.png", "dist/usa-cvi/column-control/corporate-philosophy.html-1.png", "dist/usa-cvi/column-control/corporate-philosophy.html-2.png", "dist/usa-cvi/column-control/custom-manufacturing.html-1.png", "dist/usa-cvi/column-control/custom-manufacturing.html-2.png", "dist/usa-cvi/column-control/custom-manufacturing.html-3.png", "dist/usa-cvi/column-control/custom-manufacturing.html-4.png", "dist/usa-cvi/column-control/custom-manufacturing.html-5.png", "dist/usa-cvi/column-control/custom-manufacturing.html-6.png", "dist/usa-cvi/column-control/custom-manufacturing.html-7.png", "dist/usa-cvi/column-control/custom-manufacturing.html-8.png", "dist/usa-cvi/column-control/environmental.html-1.png", "dist/usa-cvi/column-control/environmental.html-2.png", "dist/usa-cvi/column-control/environmental.html-3.png", "dist/usa-cvi/column-control/environmental.html-4.png", "dist/usa-cvi/column-control/going-small-to-empower-big-change-in-your-industry.html-1.png", "dist/usa-cvi/column-control/going-small-to-empower-big-change-in-your-industry.html-2.png", "dist/usa-cvi/column-control/going-small-to-empower-big-change-in-your-industry.html-3.png", "dist/usa-cvi/column-control/going-small-to-empower-big-change-in-your-industry.html-4.png", "dist/usa-cvi/column-control/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html-1.png", "dist/usa-cvi/column-control/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html-2.png", "dist/usa-cvi/column-control/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html-3.png", "dist/usa-cvi/column-control/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html-4.png", "dist/usa-cvi/column-control/is-traditional-dfm-enough.html-1.png", "dist/usa-cvi/column-control/is-traditional-dfm-enough.html-2.png", "dist/usa-cvi/column-control/is-traditional-dfm-enough.html-3.png", "dist/usa-cvi/column-control/is-traditional-dfm-enough.html-4.png", "dist/usa-cvi/column-control/iso-certifications.html-1.png", "dist/usa-cvi/column-control/iso-certifications.html-2.png", "dist/usa-cvi/column-control/job-opportunities.html-1.png", "dist/usa-cvi/column-control/job-opportunities.html-2.png", "dist/usa-cvi/column-control/legal.html-1.png", "dist/usa-cvi/column-control/legal.html-2.png", "dist/usa-cvi/column-control/locations.html-1.png", "dist/usa-cvi/column-control/locations.html-2.png", "dist/usa-cvi/column-control/locations.html-3.png", "dist/usa-cvi/column-control/logistics-and-international-trade.html-1.png", "dist/usa-cvi/column-control/logistics-and-international-trade.html-2.png", "dist/usa-cvi/column-control/manufacturing-carbon-nanotubes.html-1.png", "dist/usa-cvi/column-control/manufacturing-carbon-nanotubes.html-2.png", "dist/usa-cvi/column-control/manufacturing-carbon-nanotubes.html-3.png", "dist/usa-cvi/column-control/manufacturing-services.html-1.png", "dist/usa-cvi/column-control/manufacturing-services.html-2.png", "dist/usa-cvi/column-control/manufacturing-services.html-3.png", "dist/usa-cvi/column-control/manufacturing-services.html-4.png", "dist/usa-cvi/column-control/message-from-the-president.html-1.png", "dist/usa-cvi/column-control/message-from-the-president.html-2.png", "dist/usa-cvi/column-control/mold-making.html-1.png", "dist/usa-cvi/column-control/mold-making.html-2.png", "dist/usa-cvi/column-control/mold-making.html-3.png", "dist/usa-cvi/column-control/mold-making.html-4.png", "dist/usa-cvi/column-control/mold-making.html-5.png", "dist/usa-cvi/column-control/mold-making.html-6.png", "dist/usa-cvi/column-control/mold-making.html-7.png", "dist/usa-cvi/column-control/mold-making.html-8.png", "dist/usa-cvi/column-control/privacy-statement.html-1.png", "dist/usa-cvi/column-control/privacy-statement.html-2.png", "dist/usa-cvi/column-control/privacy-statement.html-3.png", "dist/usa-cvi/column-control/privacy-statement.html.png", "dist/usa-cvi/column-control/procurement-policy.html-1.png", "dist/usa-cvi/column-control/procurement-policy.html-2.png", "dist/usa-cvi/column-control/produce-precision-microfluidics-at-scale.html-1.png", "dist/usa-cvi/column-control/produce-precision-microfluidics-at-scale.html-2.png", "dist/usa-cvi/column-control/produce-precision-microfluidics-at-scale.html-3.png", "dist/usa-cvi/column-control/produce-precision-microfluidics-at-scale.html-4.png", "dist/usa-cvi/column-control/quality-cost-delivery-environment.html-1.png", "dist/usa-cvi/column-control/quality-cost-delivery-environment.html-2.png", "dist/usa-cvi/column-control/reimagine-efficiency-by-turning-cooling-time-into-production-time.html-1.png", "dist/usa-cvi/column-control/reimagine-efficiency-by-turning-cooling-time-into-production-time.html-2.png", "dist/usa-cvi/column-control/reimagine-efficiency-by-turning-cooling-time-into-production-time.html-3.png", "dist/usa-cvi/column-control/remarkably-efficient-uniquely-canon.html-1.png", "dist/usa-cvi/column-control/remarkably-efficient-uniquely-canon.html-2.png", "dist/usa-cvi/column-control/remarkably-efficient-uniquely-canon.html-3.png", "dist/usa-cvi/column-control/resources.html-1.png", "dist/usa-cvi/column-control/resources.html-2.png", "dist/usa-cvi/column-control/resources.html-3.png", "dist/usa-cvi/column-control/resources.html-4.png", "dist/usa-cvi/column-control/secrets-in-advanced-manufacturing.html-1.png", "dist/usa-cvi/column-control/secrets-in-advanced-manufacturing.html-2.png", "dist/usa-cvi/column-control/secrets-in-advanced-manufacturing.html-3.png", "dist/usa-cvi/column-control/shuttle-mold-system-evaluation.html-1.png", "dist/usa-cvi/column-control/shuttle-mold-system-evaluation.html-2.png", "dist/usa-cvi/column-control/shuttle-mold-system-evaluation.html-3.png", "dist/usa-cvi/column-control/shuttle-mold-system-evaluation.html-4.png", "dist/usa-cvi/column-control/shuttle-mold-system-process-animation.html-1.png", "dist/usa-cvi/column-control/shuttle-mold-system-process-animation.html-2.png", "dist/usa-cvi/column-control/shuttle-mold-system-process-animation.html-3.png", "dist/usa-cvi/column-control/shuttle-mold-system-process-animation.html-4.png", "dist/usa-cvi/column-control/shuttle-mold-system.html-1.png", "dist/usa-cvi/column-control/shuttle-mold-system.html-2.png", "dist/usa-cvi/column-control/shuttle-mold-system.html-3.png", "dist/usa-cvi/column-control/sitemap.html-1.png", "dist/usa-cvi/column-control/sitemap.html-2.png", "dist/usa-cvi/column-control/still-on-hold-how-to-make-part-cooling-time-more-productive.html-1.png", "dist/usa-cvi/column-control/still-on-hold-how-to-make-part-cooling-time-more-productive.html-2.png", "dist/usa-cvi/column-control/still-on-hold-how-to-make-part-cooling-time-more-productive.html-3.png", "dist/usa-cvi/column-control/still-on-hold-how-to-make-part-cooling-time-more-productive.html-4.png", "dist/usa-cvi/column-control/suppliers.html-1.png", "dist/usa-cvi/column-control/suppliers.html-2.png", "dist/usa-cvi/column-control/terms-of-use.html-1.png", "dist/usa-cvi/column-control/terms-of-use.html-2.png", "dist/usa-cvi/column-control/terms-of-use.html-3.png", "dist/usa-cvi/column-control/the-manufacturing-alliance-podcast.html-1.png", "dist/usa-cvi/column-control/the-manufacturing-alliance-podcast.html-2.png", "dist/usa-cvi/column-control/the-manufacturing-alliance-podcast.html-3.png", "dist/usa-cvi/column-control/the-power-of-partnerships.html-1.png", "dist/usa-cvi/column-control/the-power-of-partnerships.html-2.png", "dist/usa-cvi/column-control/the-power-of-partnerships.html-3.png", "dist/usa-cvi/column-control/transform-your-molding-capabilities.html-1.png", "dist/usa-cvi/column-control/transform-your-molding-capabilities.html-2.png", "dist/usa-cvi/column-control/transform-your-molding-capabilities.html-3.png", "dist/usa-cvi/column-control/working-at-canon-virginia.html-1.png", "dist/usa-cvi/column-control/working-at-canon-virginia.html-2.png", "dist/usa-cvi/column-control/your-privacy-rights.html.png"], "experiencefragment": ["dist/usa-cvi/experiencefragment/canon-virginia-inc-brings-collaboration-to-the-table.html.png", "dist/usa-cvi/experiencefragment/going-small-to-empower-big-change-in-your-industry.html.png", "dist/usa-cvi/experiencefragment/increase-capacity-by-up-to-double-with-the-canon-shuttle-mold-system.html.png", "dist/usa-cvi/experiencefragment/is-traditional-dfm-enough.html.png", "dist/usa-cvi/experiencefragment/manufacturing-carbon-nanotubes.html.png", "dist/usa-cvi/experiencefragment/produce-precision-microfluidics-at-scale.html.png", "dist/usa-cvi/experiencefragment/remarkably-efficient-uniquely-canon.html.png", "dist/usa-cvi/experiencefragment/secrets-in-advanced-manufacturing.html.png", "dist/usa-cvi/experiencefragment/shuttle-mold-system-evaluation.html.png", "dist/usa-cvi/experiencefragment/still-on-hold-how-to-make-part-cooling-time-more-productive.html.png", "dist/usa-cvi/experiencefragment/the-manufacturing-alliance-podcast.html.png", "dist/usa-cvi/experiencefragment/the-power-of-partnerships.html.png", "dist/usa-cvi/experiencefragment/transform-your-molding-capabilities.html.png"], "fixedColumnCardLayout": ["dist/usa-cvi/fixedColumnCardLayout/resources.html-1.png", "dist/usa-cvi/fixedColumnCardLayout/resources.html-2.png", "dist/usa-cvi/fixedColumnCardLayout/resources.html-3.png", "dist/usa-cvi/fixedColumnCardLayout/resources.html-4.png", "dist/usa-cvi/fixedColumnCardLayout/resources.html-5.png"], "hero": ["dist/usa-cvi/hero/about-us.html.png", "dist/usa-cvi/hero/becoming-a-supplier.html.png", "dist/usa-cvi/hero/careers.html.png", "dist/usa-cvi/hero/community-involvement.html.png", "dist/usa-cvi/hero/contact-us.html.png", "dist/usa-cvi/hero/corporate-philosophy.html.png", "dist/usa-cvi/hero/environmental.html-1.png", "dist/usa-cvi/hero/environmental.html-2.png", "dist/usa-cvi/hero/iso-certifications.html.png", "dist/usa-cvi/hero/job-opportunities.html.png", "dist/usa-cvi/hero/legal.html.png", "dist/usa-cvi/hero/locations.html.png", "dist/usa-cvi/hero/logistics-and-international-trade.html.png", "dist/usa-cvi/hero/message-from-the-president.html.png", "dist/usa-cvi/hero/procurement-policy.html.png", "dist/usa-cvi/hero/quality-cost-delivery-environment.html.png", "dist/usa-cvi/hero/secrets-in-advanced-manufacturing.html.png", "dist/usa-cvi/hero/suppliers.html.png", "dist/usa-cvi/hero/the-power-of-partnerships.html.png", "dist/usa-cvi/hero/working-at-canon-virginia.html.png"], "tabs": ["dist/usa-cvi/tabs/resources.html.png"]}</script>
+<script>const DIST_BASE = "dist/usa-cvi";</script>
 <script>
-// ── Table filtering & sorting ────────────────────────────────────────────────
-const rows     = Array.from(document.querySelectorAll('tbody tr[data-comp]'));
-const subRows  = Array.from(document.querySelectorAll('tbody tr.pages-row'));
-const searchEl = document.getElementById('search');
-const countEl  = document.getElementById('visible-count');
-
-function applyFilters() {
-    const q = searchEl.value.toLowerCase();
-    let visible = 0;
-    rows.forEach(row => {
-        const show = !q || row.dataset.comp.toLowerCase().includes(q);
-        row.classList.toggle('hidden', !show);
-        if (show) visible++;
-    });
-    subRows.forEach(row => {
-        const parent = document.querySelector(`tr[data-comp="${row.dataset.parent}"]`);
-        row.classList.toggle('hidden', !parent || parent.classList.contains('hidden'));
-    });
-    countEl.textContent = visible + ' components';
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-searchEl.addEventListener('input', applyFilters);
 
+// Strip a URL down to its path (+query) for compact display, generically —
+// works for whatever site was crawled rather than one hardcoded domain.
+function shortPath(url) {
+    try { const u = new URL(url); return u.pathname + u.search; } catch { return url; }
+}
+
+// ── Load summary.json and render everything ─────────────────────────────────
+// The report ships as a thin static shell; all data lives in summary.json
+// (high-level breakdown, loaded once) and one {folder}/data.json per
+// component (screenshots, loaded lazily — see openModal below). This means
+// the HTML/CSS/JS here can be edited and reloaded without re-running a crawl,
+// as long as a previous run's dist/ output is still on disk.
+let SUMMARY = null;
 let sortCol = 'pages', sortDir = -1;
+let searchQuery = '';
+
+fetch(`${DIST_BASE}/summary.json`)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => { SUMMARY = data; renderAll(); })
+    .catch(err => {
+        document.querySelector('.content').innerHTML =
+            `<p style="color:#b91c1c">Failed to load ${DIST_BASE}/summary.json (${esc(err)}). ` +
+            `Is this report being served over http:// rather than opened as a file?</p>`;
+    });
+
+function renderAll() {
+    document.title = `${SUMMARY.label} — Component Discovery`;
+    document.getElementById('report-title').textContent = `${SUMMARY.label} — Component Discovery`;
+    document.getElementById('report-meta').textContent =
+        `Generated ${SUMMARY.generated} · ${SUMMARY.total_pages} page(s) crawled`;
+    renderChips();
+    renderTable();
+    renderPagesSection();
+}
+
+function renderChips() {
+    const pagesWithData = SUMMARY.page_results.filter(r => r.components.length).length;
+    const totalOcc = SUMMARY.components.reduce((s, c) => s + c.occurrences, 0);
+    document.getElementById('summary-chips').innerHTML = `
+        <div class="chip" style="background:#eff6ff;color:#1e40af;">
+            <span class="chip-num">${SUMMARY.total_pages}</span>
+            <span class="chip-lbl">Pages Crawled</span>
+        </div>
+        <div class="chip" style="background:#f0fdf4;color:#166534;">
+            <span class="chip-num">${pagesWithData}</span>
+            <span class="chip-lbl">Pages with Components</span>
+        </div>
+        <div class="chip" style="background:#f1f5f9;color:#334155;">
+            <span class="chip-num">${SUMMARY.components.length}</span>
+            <span class="chip-lbl">Unique Components</span>
+        </div>
+        <div class="chip" style="background:#fef9c3;color:#854d0e;">
+            <span class="chip-num">${totalOcc}</span>
+            <span class="chip-lbl">Total Occurrences</span>
+        </div>`;
+}
+
+function pageLinkHtml(url) {
+    return `<a href="${esc(url)}" target="_blank" rel="noopener" class="page-link" title="${esc(url)}">${esc(shortPath(url))}</a>`;
+}
+
+// ── Table: filtering & sorting ───────────────────────────────────────────────
+function renderTable() {
+    const tbody = document.querySelector('#comp-table tbody');
+    tbody.innerHTML = '';
+
+    let comps = SUMMARY.components.filter(c => !searchQuery || c.name.toLowerCase().includes(searchQuery));
+    comps = comps.slice().sort((a, b) => {
+        if (sortCol === 'comp') return sortDir * a.name.localeCompare(b.name);
+        const av = sortCol === 'occ' ? a.occurrences : a.pages.length;
+        const bv = sortCol === 'occ' ? b.occurrences : b.pages.length;
+        return sortDir * (av - bv);
+    });
+    document.getElementById('visible-count').textContent = `${comps.length} components`;
+
+    for (const c of comps) {
+        const pct = SUMMARY.total_pages ? (c.pages.length / SUMMARY.total_pages * 100) : 0;
+        const shotBtn = c.shot_count
+            ? `<button class="shot-btn" onclick="openModal('${esc(c.folder)}')">&#128247; ${c.shot_count}</button>`
+            : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="comp-cell">${esc(c.name)}${shotBtn}</td>
+            <td class="num">${c.occurrences}</td>
+            <td class="num">${c.pages.length}</td>
+            <td>
+                <div class="cov-wrap">
+                    <div class="cov-bar-bg"><div class="cov-bar" style="width:${pct.toFixed(1)}%"></div></div>
+                    <span class="cov-pct">${pct.toFixed(0)}%</span>
+                </div>
+            </td>`;
+        tbody.appendChild(row);
+
+        const preview = c.pages.slice(0, 5), extra = c.pages.slice(5);
+        const expand = extra.length
+            ? `<details class="pages-more"><summary>+${extra.length.toLocaleString()} more</summary>
+                 <div class="pages-grid">${extra.map(pageLinkHtml).join('')}</div></details>`
+            : '';
+        const pagesRow = document.createElement('tr');
+        pagesRow.className = 'pages-row';
+        pagesRow.innerHTML = `<td colspan="4"><div class="pages-grid">${preview.map(pageLinkHtml).join('')}</div>${expand}</td>`;
+        tbody.appendChild(pagesRow);
+    }
+
+    const totalOcc = SUMMARY.components.reduce((s, c) => s + c.occurrences, 0);
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `<td>TOTAL</td><td class="num">${totalOcc}</td><td class="num">${SUMMARY.total_pages}</td><td></td>`;
+    tbody.appendChild(totalRow);
+}
+
+document.getElementById('search').addEventListener('input', e => {
+    searchQuery = e.target.value.toLowerCase();
+    if (SUMMARY) renderTable();
+});
+
 document.querySelectorAll('thead th[data-col]').forEach(th => {
     th.addEventListener('click', () => {
         if (sortCol === th.dataset.col) { sortDir *= -1; }
@@ -444,50 +411,98 @@ document.querySelectorAll('thead th[data-col]').forEach(th => {
         document.querySelectorAll('thead th').forEach(t =>
             t.classList.remove('sorted-asc', 'sorted-desc'));
         th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
-        sortTable();
+        if (SUMMARY) renderTable();
     });
 });
 
-function sortTable() {
-    const tbody    = document.querySelector('tbody');
-    const totalRow = document.querySelector('tr.total-row');
-    rows.slice().sort((a, b) => {
-        if (sortCol === 'comp') return sortDir * a.dataset.comp.localeCompare(b.dataset.comp);
-        return sortDir * ((parseFloat(a.dataset[sortCol]) || 0) - (parseFloat(b.dataset[sortCol]) || 0));
-    }).forEach(row => {
-        tbody.appendChild(row);
-        subRows.filter(sr => sr.dataset.parent === row.dataset.comp)
-               .forEach(sr => tbody.appendChild(sr));
-    });
-    if (totalRow) tbody.appendChild(totalRow);
-    applyFilters();
+// ── Pages section — two accordions ───────────────────────────────────────────
+function renderPagesSection() {
+    const found    = SUMMARY.page_results.filter(r => r.components.length);
+    const notFound = SUMMARY.page_results.filter(r => !r.components.length);
+
+    document.getElementById('found-count').textContent    = `${found.length} page${found.length !== 1 ? 's' : ''}`;
+    document.getElementById('notfound-count').textContent = `${notFound.length} page${notFound.length !== 1 ? 's' : ''}`;
+
+    document.getElementById('found-body').innerHTML = found.length ? found.map(r => `
+        <div class="page-card">
+            <div class="page-card-header">
+                <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(shortPath(r.url))}</a>
+                <span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">${r.components.length} component(s)</span>
+            </div>
+            <div class="page-card-body">${r.components.map(c => `<span class="comp-tag">${esc(c)}</span>`).join('')}</div>
+        </div>`).join('') : "<p style='color:#94a3b8;font-size:12px'>None</p>";
+
+    document.getElementById('notfound-body').innerHTML = notFound.length
+        ? `<div class="empty-links">${notFound.map(r =>
+            `<a href="${esc(r.url)}" class="empty-link" target="_blank" rel="noopener">${esc(shortPath(r.url))}</a>`).join('')}</div>`
+        : "<p style='color:#94a3b8;font-size:12px'>None</p>";
 }
 
 // ── Screenshot modal ─────────────────────────────────────────────────────────
-const SCREENSHOTS = JSON.parse(document.getElementById('screenshot-data').textContent);
+// Opens straight into a thumbnail grid of every screenshot for the component;
+// clicking a thumbnail switches to a single-image viewer (prev/next, and a
+// link to the live page it was captured from) starting at that image. Each
+// component's screenshot list is only fetched the first time its modal is
+// opened, then cached, so the report doesn't pay for data it never displays.
 const modal       = document.getElementById('screenshot-modal');
-const modalImg    = modal.querySelector('.modal-img');
 const modalTitle  = modal.querySelector('.modal-title');
+const modalGrid   = modal.querySelector('.modal-grid');
+const modalViewer = modal.querySelector('.modal-viewer');
+const modalImg    = modal.querySelector('.modal-img');
 const modalCap    = modal.querySelector('.modal-caption');
+const modalPageLink = modal.querySelector('.modal-page-link');
 const modalCtr    = modal.querySelector('.modal-counter');
 const modalPrev   = modal.querySelector('.modal-prev');
 const modalNext   = modal.querySelector('.modal-next');
 
+const _dataCache = {};
 let _images = [], _idx = 0;
 
-function openModal(folder) {
-    _images = SCREENSHOTS[folder] || [];
-    if (!_images.length) return;
-    _idx = 0;
-    modalTitle.textContent = folder.replace(/_/g, ' ');
-    _renderModal();
-    modal.removeAttribute('hidden');
+function loadComponentData(folder) {
+    if (_dataCache[folder]) return Promise.resolve(_dataCache[folder]);
+    return fetch(`${DIST_BASE}/${folder}/data.json`)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => { _dataCache[folder] = d.shots; return d.shots; });
 }
 
-function _renderModal() {
-    const src = _images[_idx];
-    modalImg.src = src;
-    modalCap.textContent = src.split('/').pop().replace(/\.png$/i, '');
+function openModal(folder) {
+    modalTitle.textContent = folder.replace(/_/g, ' ');
+    modalGrid.innerHTML = "<p style='color:#94a3b8;font-size:12px;padding:8px;'>Loading…</p>";
+    modalGrid.hidden = false;
+    modalViewer.hidden = true;
+    modal.removeAttribute('hidden');
+
+    loadComponentData(folder).then(shots => {
+        _images = shots;
+        _showGrid();
+    }).catch(err => {
+        modalGrid.innerHTML = `<p style="color:#b91c1c;font-size:12px;padding:8px;">Failed to load screenshots (${esc(err)})</p>`;
+    });
+}
+
+function _showGrid() {
+    modalGrid.innerHTML = _images.map((img, i) => `
+        <button class="thumb-item" onclick="openViewer(${i})">
+            <img src="${esc(img.thumb)}" alt="${esc(img.caption)}" loading="lazy">
+            <span class="thumb-cap">${esc(img.caption)}</span>
+        </button>`).join('');
+    modalGrid.hidden = false;
+    modalViewer.hidden = true;
+}
+
+function openViewer(i) {
+    _idx = i;
+    _renderViewer();
+    modalGrid.hidden = true;
+    modalViewer.hidden = false;
+}
+
+function _renderViewer() {
+    const img = _images[_idx];
+    modalImg.src = img.full;
+    modalCap.textContent = img.caption;
+    modalPageLink.href = img.url;
+    modalPageLink.textContent = 'View page ↗ ' + shortPath(img.url);
     modalCtr.textContent = `${_idx + 1} / ${_images.length}`;
     modalPrev.disabled = _idx === 0;
     modalNext.disabled = _idx === _images.length - 1;
@@ -495,8 +510,10 @@ function _renderModal() {
 
 function modalNav(dir) {
     _idx = Math.max(0, Math.min(_images.length - 1, _idx + dir));
-    _renderModal();
+    _renderViewer();
 }
+
+function backToGrid() { _showGrid(); }
 
 function closeModal() { modal.setAttribute('hidden', ''); }
 
@@ -504,9 +521,14 @@ modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
 document.addEventListener('keydown', e => {
     if (modal.hasAttribute('hidden')) return;
-    if (e.key === 'Escape')      closeModal();
-    if (e.key === 'ArrowLeft')   modalNav(-1);
-    if (e.key === 'ArrowRight')  modalNav(1);
+    if (e.key === 'Escape') {
+        if (!modalViewer.hidden) backToGrid();
+        else closeModal();
+    }
+    if (!modalViewer.hidden) {
+        if (e.key === 'ArrowLeft')  modalNav(-1);
+        if (e.key === 'ArrowRight') modalNav(1);
+    }
 });
 </script>
 </body>
