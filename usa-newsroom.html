@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>USA — CONSUMER - NEWSROOM — Canon Component Discovery</title>
+<title>Component Discovery</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -182,38 +182,55 @@ details.accordion[open] > summary::after { content: '▼'; }
 .modal-nav:disabled { opacity: 0.25; cursor: default; }
 .modal-footer { text-align: center; }
 .modal-caption { font-family: monospace; font-size: 12px; color: #475569; }
+.modal-page-link {
+    display: inline-block; margin-top: 2px; font-size: 11px;
+    color: #3b82f6; text-decoration: none;
+}
+.modal-page-link:hover { text-decoration: underline; }
 .modal-counter { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+/* Modal — thumbnail grid */
+.modal-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px; width: 720px; max-height: 70vh; overflow-y: auto; padding: 2px;
+}
+.modal-grid[hidden] { display: none; }
+.thumb-item {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+    cursor: pointer; padding: 0; overflow: hidden; text-align: left;
+}
+.thumb-item:hover { border-color: #93c5fd; }
+.thumb-item img {
+    width: 100%; height: 90px; object-fit: cover; display: block;
+}
+.thumb-item .thumb-cap {
+    display: block; padding: 5px 7px; font-size: 10px; font-family: monospace;
+    color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Modal — single-image viewer */
+.modal-viewer { display: flex; flex-direction: column; gap: 10px; }
+.modal-viewer[hidden] { display: none; }
+.modal-back {
+    background: none; border: none; color: #3b82f6; cursor: pointer;
+    font-size: 12px; padding: 0; text-align: left; margin-bottom: -4px;
+}
+.modal-back:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
-  <h1>USA — CONSUMER - NEWSROOM — Canon Component Discovery</h1>
-  <div class="meta">Generated 2026-06-11 22:29 &nbsp;·&nbsp; 30 PDP pages crawled &nbsp;·&nbsp; #pdp-description &gt; .ccMaxWidth immediate children</div>
+  <h1 id="report-title">Component Discovery</h1>
+  <div class="meta" id="report-meta">Loading…</div>
 </div>
 
 <div class="content">
-  <div class="summary-chips">
-        <div class="chip" style="background:#eff6ff;color:#1e40af;">
-            <span class="chip-num">30</span>
-            <span class="chip-lbl">Pages Crawled</span>
-        </div>
-        <div class="chip" style="background:#f0fdf4;color:#166534;">
-            <span class="chip-num">30</span>
-            <span class="chip-lbl">Pages with Components</span>
-        </div>
-        <div class="chip" style="background:#f1f5f9;color:#334155;">
-            <span class="chip-num">4</span>
-            <span class="chip-lbl">Unique Components</span>
-        </div>
-        <div class="chip" style="background:#fef9c3;color:#854d0e;">
-            <span class="chip-num">83</span>
-            <span class="chip-lbl">Total Occurrences</span>
-        </div></div>
+  <div class="summary-chips" id="summary-chips"></div>
 
   <div class="controls">
     <input id="search" type="text" placeholder="Search components…">
-    <span class="visible-count" id="visible-count">4 components</span>
+    <span class="visible-count" id="visible-count"></span>
   </div>
 
   <div class="table-wrap">
@@ -221,146 +238,23 @@ details.accordion[open] > summary::after { content: '▼'; }
     <thead>
       <tr>
         <th data-col="comp">Component Class</th>
-        <th data-col="occ" class="sorted-desc" style="text-align:right">Occurrences</th>
-        <th data-col="pages" style="text-align:right">Pages</th>
+        <th data-col="occ" style="text-align:right">Occurrences</th>
+        <th data-col="pages" class="sorted-desc" style="text-align:right">Pages</th>
         <th class="no-sort">Coverage</th>
       </tr>
     </thead>
-    <tbody>
-<tr data-comp="title" data-pages="30" data-occ="43"><td class="comp-cell">title</td><td class="num">43</td><td class="num">30</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:100.0%"></div></div><span class="cov-pct">100%</span></div></td></tr>
-<tr class="pages-row" data-parent="title"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2025/20251223-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251223-award">/newsroom/2025/20251223-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240924-anniversary" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240924-anniversary">/newsroom/2024/20240924-anniversary</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240813-expo" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240813-expo">/newsroom/2024/20240813-expo</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250328-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250328-printer">/newsroom/2025/20250328-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240605-firmware" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240605-firmware">/newsroom/2024/20240605-firmware</a></div><details class="pages-more"><summary>+25 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2024/20241220-foundation" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20241220-foundation">/newsroom/2024/20241220-foundation</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240131-patents" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240131-patents">/newsroom/2024/20240131-patents</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260415-camera" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260415-camera">/newsroom/2026/20260415-camera</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250619-turtle" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250619-turtle">/newsroom/2025/20250619-turtle</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20251106-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251106-award">/newsroom/2025/20251106-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240924-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240924-printer">/newsroom/2024/20240924-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260210-sustainability" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260210-sustainability">/newsroom/2026/20260210-sustainability</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250506-corporate" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250506-corporate">/newsroom/2025/20250506-corporate</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240910-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240910-printer">/newsroom/2024/20240910-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260105-ces" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260105-ces">/newsroom/2026/20260105-ces</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250708-recognition" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250708-recognition">/newsroom/2025/20250708-recognition</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240528-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240528-printer">/newsroom/2024/20240528-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260409-think-board" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260409-think-board">/newsroom/2026/20260409-think-board</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250220-swingrec" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250220-swingrec">/newsroom/2025/20250220-swingrec</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20251007-yankees" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251007-yankees">/newsroom/2025/20251007-yankees</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026">/newsroom/2026/20260504-earth-day-2026</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250403-NAB" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250403-NAB">/newsroom/2025/20250403-NAB</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250630-market-share" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250630-market-share">/newsroom/2025/20250630-market-share</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240216-recognition" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240216-recognition">/newsroom/2024/20240216-recognition</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260115-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260115-printer">/newsroom/2026/20260115-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260211-game" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260211-game">/newsroom/2026/20260211-game</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240326-presses" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240326-presses">/newsroom/2024/20240326-presses</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250820-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250820-award">/newsroom/2025/20250820-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240724-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240724-award">/newsroom/2024/20240724-award</a>
-<a href="https://www.usa.canon.com/newsroom/2023/20230511-camera" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2023/20230511-camera">/newsroom/2023/20230511-camera</a></div></details></td></tr>
-<tr data-comp="rte parbase" data-pages="30" data-occ="31"><td class="comp-cell">rte parbase<button class="shot-btn" onclick="openModal('rte_parbase')">&#128247; 31</button></td><td class="num">31</td><td class="num">30</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:100.0%"></div></div><span class="cov-pct">100%</span></div></td></tr>
-<tr class="pages-row" data-parent="rte parbase"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2025/20251223-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251223-award">/newsroom/2025/20251223-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240924-anniversary" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240924-anniversary">/newsroom/2024/20240924-anniversary</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240813-expo" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240813-expo">/newsroom/2024/20240813-expo</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250328-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250328-printer">/newsroom/2025/20250328-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240605-firmware" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240605-firmware">/newsroom/2024/20240605-firmware</a></div><details class="pages-more"><summary>+25 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2024/20241220-foundation" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20241220-foundation">/newsroom/2024/20241220-foundation</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240131-patents" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240131-patents">/newsroom/2024/20240131-patents</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260415-camera" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260415-camera">/newsroom/2026/20260415-camera</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250619-turtle" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250619-turtle">/newsroom/2025/20250619-turtle</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20251106-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251106-award">/newsroom/2025/20251106-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240924-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240924-printer">/newsroom/2024/20240924-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260210-sustainability" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260210-sustainability">/newsroom/2026/20260210-sustainability</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250506-corporate" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250506-corporate">/newsroom/2025/20250506-corporate</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240910-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240910-printer">/newsroom/2024/20240910-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260105-ces" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260105-ces">/newsroom/2026/20260105-ces</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250708-recognition" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250708-recognition">/newsroom/2025/20250708-recognition</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240528-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240528-printer">/newsroom/2024/20240528-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260409-think-board" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260409-think-board">/newsroom/2026/20260409-think-board</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250220-swingrec" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250220-swingrec">/newsroom/2025/20250220-swingrec</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20251007-yankees" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251007-yankees">/newsroom/2025/20251007-yankees</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026">/newsroom/2026/20260504-earth-day-2026</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250403-NAB" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250403-NAB">/newsroom/2025/20250403-NAB</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250630-market-share" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250630-market-share">/newsroom/2025/20250630-market-share</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240216-recognition" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240216-recognition">/newsroom/2024/20240216-recognition</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260115-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260115-printer">/newsroom/2026/20260115-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260211-game" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260211-game">/newsroom/2026/20260211-game</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240326-presses" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240326-presses">/newsroom/2024/20240326-presses</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250820-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250820-award">/newsroom/2025/20250820-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240724-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240724-award">/newsroom/2024/20240724-award</a>
-<a href="https://www.usa.canon.com/newsroom/2023/20230511-camera" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2023/20230511-camera">/newsroom/2023/20230511-camera</a></div></details></td></tr>
-<tr data-comp="card-carousel carousel" data-pages="22" data-occ="22"><td class="comp-cell">card-carousel carousel<button class="shot-btn" onclick="openModal('card-carousel_carousel')">&#128247; 22</button></td><td class="num">22</td><td class="num">22</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:73.3%"></div></div><span class="cov-pct">73%</span></div></td></tr>
-<tr class="pages-row" data-parent="card-carousel carousel"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2025/20251223-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251223-award">/newsroom/2025/20251223-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240924-anniversary" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240924-anniversary">/newsroom/2024/20240924-anniversary</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240813-expo" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240813-expo">/newsroom/2024/20240813-expo</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250328-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250328-printer">/newsroom/2025/20250328-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20241220-foundation" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20241220-foundation">/newsroom/2024/20241220-foundation</a></div><details class="pages-more"><summary>+17 more</summary><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2026/20260415-camera" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260415-camera">/newsroom/2026/20260415-camera</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250619-turtle" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250619-turtle">/newsroom/2025/20250619-turtle</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20251106-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251106-award">/newsroom/2025/20251106-award</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240924-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240924-printer">/newsroom/2024/20240924-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260210-sustainability" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260210-sustainability">/newsroom/2026/20260210-sustainability</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250506-corporate" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250506-corporate">/newsroom/2025/20250506-corporate</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240910-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240910-printer">/newsroom/2024/20240910-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250708-recognition" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250708-recognition">/newsroom/2025/20250708-recognition</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240528-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240528-printer">/newsroom/2024/20240528-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250220-swingrec" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250220-swingrec">/newsroom/2025/20250220-swingrec</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20251007-yankees" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20251007-yankees">/newsroom/2025/20251007-yankees</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026">/newsroom/2026/20260504-earth-day-2026</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250630-market-share" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250630-market-share">/newsroom/2025/20250630-market-share</a>
-<a href="https://www.usa.canon.com/newsroom/2026/20260115-printer" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260115-printer">/newsroom/2026/20260115-printer</a>
-<a href="https://www.usa.canon.com/newsroom/2024/20240326-presses" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2024/20240326-presses">/newsroom/2024/20240326-presses</a>
-<a href="https://www.usa.canon.com/newsroom/2025/20250820-award" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2025/20250820-award">/newsroom/2025/20250820-award</a>
-<a href="https://www.usa.canon.com/newsroom/2023/20230511-camera" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2023/20230511-camera">/newsroom/2023/20230511-camera</a></div></details></td></tr>
-<tr data-comp="video" data-pages="1" data-occ="1"><td class="comp-cell">video<button class="shot-btn" onclick="openModal('video')">&#128247; 1</button></td><td class="num">1</td><td class="num">1</td><td><div class="cov-wrap"><div class="cov-bar-bg"><div class="cov-bar" style="width:3.3%"></div></div><span class="cov-pct">3%</span></div></td></tr>
-<tr class="pages-row" data-parent="video"><td colspan="4"><div class="pages-grid"><a href="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026" target="_blank" rel="noopener" class="page-link" title="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026">/newsroom/2026/20260504-earth-day-2026</a></div></td></tr>
-<tr class="total-row"><td>TOTAL</td><td class="num">83</td><td class="num">30</td><td></td></tr>
-
-    </tbody>
+    <tbody></tbody>
   </table>
   </div>
 
-  
-<details class="accordion" open>
-  <summary>
-    Pages with components found
-    <span class="summary-count">30 pages</span>
-  </summary>
-  <div class="accordion-body"><div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20251223-award" target="_blank" rel="noopener">/newsroom/2025/20251223-award</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240924-anniversary" target="_blank" rel="noopener">/newsroom/2024/20240924-anniversary</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240813-expo" target="_blank" rel="noopener">/newsroom/2024/20240813-expo</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250328-printer" target="_blank" rel="noopener">/newsroom/2025/20250328-printer</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240605-firmware" target="_blank" rel="noopener">/newsroom/2024/20240605-firmware</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20241220-foundation" target="_blank" rel="noopener">/newsroom/2024/20241220-foundation</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240131-patents" target="_blank" rel="noopener">/newsroom/2024/20240131-patents</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260415-camera" target="_blank" rel="noopener">/newsroom/2026/20260415-camera</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250619-turtle" target="_blank" rel="noopener">/newsroom/2025/20250619-turtle</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20251106-award" target="_blank" rel="noopener">/newsroom/2025/20251106-award</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240924-printer" target="_blank" rel="noopener">/newsroom/2024/20240924-printer</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260210-sustainability" target="_blank" rel="noopener">/newsroom/2026/20260210-sustainability</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250506-corporate" target="_blank" rel="noopener">/newsroom/2025/20250506-corporate</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240910-printer" target="_blank" rel="noopener">/newsroom/2024/20240910-printer</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260105-ces" target="_blank" rel="noopener">/newsroom/2026/20260105-ces</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250708-recognition" target="_blank" rel="noopener">/newsroom/2025/20250708-recognition</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240528-printer" target="_blank" rel="noopener">/newsroom/2024/20240528-printer</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260409-think-board" target="_blank" rel="noopener">/newsroom/2026/20260409-think-board</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250220-swingrec" target="_blank" rel="noopener">/newsroom/2025/20250220-swingrec</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20251007-yankees" target="_blank" rel="noopener">/newsroom/2025/20251007-yankees</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260504-earth-day-2026" target="_blank" rel="noopener">/newsroom/2026/20260504-earth-day-2026</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">5 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">video</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250403-NAB" target="_blank" rel="noopener">/newsroom/2025/20250403-NAB</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250630-market-share" target="_blank" rel="noopener">/newsroom/2025/20250630-market-share</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240216-recognition" target="_blank" rel="noopener">/newsroom/2024/20240216-recognition</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260115-printer" target="_blank" rel="noopener">/newsroom/2026/20260115-printer</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2026/20260211-game" target="_blank" rel="noopener">/newsroom/2026/20260211-game</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240326-presses" target="_blank" rel="noopener">/newsroom/2024/20240326-presses</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">4 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2025/20250820-award" target="_blank" rel="noopener">/newsroom/2025/20250820-award</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2024/20240724-award" target="_blank" rel="noopener">/newsroom/2024/20240724-award</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">2 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span></div></div>
-<div class="page-card"><div class="page-card-header"><a href="https://www.usa.canon.com/newsroom/2023/20230511-camera" target="_blank" rel="noopener">/newsroom/2023/20230511-camera</a><span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">3 component(s)</span></div><div class="page-card-body"><span class="comp-tag">title</span><span class="comp-tag">rte parbase</span><span class="comp-tag">card-carousel carousel</span></div></div></div>
-</details>
-<details class="accordion">
-  <summary>
-    Pages with no components found
-    <span class="summary-count">0 pages</span>
-  </summary>
-  <div class="accordion-body"><p style='color:#94a3b8;font-size:12px'>None</p></div>
-</details>
+  <details class="accordion" open>
+    <summary>Pages with components found <span class="summary-count" id="found-count"></span></summary>
+    <div class="accordion-body" id="found-body"></div>
+  </details>
+  <details class="accordion">
+    <summary>Pages with no components found <span class="summary-count" id="notfound-count"></span></summary>
+    <div class="accordion-body" id="notfound-body"></div>
+  </details>
 </div>
 
 <!-- Screenshot modal -->
@@ -368,43 +262,148 @@ details.accordion[open] > summary::after { content: '▼'; }
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     <div class="modal-title"></div>
-    <div class="modal-img-wrap">
-      <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
-      <img class="modal-img" src="" alt="">
-      <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
-    </div>
-    <div class="modal-footer">
-      <div class="modal-caption"></div>
-      <div class="modal-counter"></div>
+
+    <div class="modal-grid"></div>
+
+    <div class="modal-viewer" hidden>
+      <button class="modal-back" onclick="backToGrid()">&#8249; All screenshots</button>
+      <div class="modal-img-wrap">
+        <button class="modal-nav modal-prev" onclick="modalNav(-1)">&#8249;</button>
+        <img class="modal-img" src="" alt="">
+        <button class="modal-nav modal-next" onclick="modalNav(1)">&#8250;</button>
+      </div>
+      <div class="modal-footer">
+        <div class="modal-caption"></div>
+        <a class="modal-page-link" href="#" target="_blank" rel="noopener"></a>
+        <div class="modal-counter"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<script id="screenshot-data" type="application/json">{"card-carousel_carousel": ["dist/usa-newsroom/card-carousel_carousel/20230511-camera.png", "dist/usa-newsroom/card-carousel_carousel/20240326-presses.png", "dist/usa-newsroom/card-carousel_carousel/20240528-printer.png", "dist/usa-newsroom/card-carousel_carousel/20240813-expo.png", "dist/usa-newsroom/card-carousel_carousel/20240910-printer.png", "dist/usa-newsroom/card-carousel_carousel/20240924-anniversary.png", "dist/usa-newsroom/card-carousel_carousel/20240924-printer.png", "dist/usa-newsroom/card-carousel_carousel/20241220-foundation.png", "dist/usa-newsroom/card-carousel_carousel/20250220-swingrec.png", "dist/usa-newsroom/card-carousel_carousel/20250328-printer.png", "dist/usa-newsroom/card-carousel_carousel/20250506-corporate.png", "dist/usa-newsroom/card-carousel_carousel/20250619-turtle.png", "dist/usa-newsroom/card-carousel_carousel/20250630-market-share.png", "dist/usa-newsroom/card-carousel_carousel/20250708-recognition.png", "dist/usa-newsroom/card-carousel_carousel/20250820-award.png", "dist/usa-newsroom/card-carousel_carousel/20251007-yankees.png", "dist/usa-newsroom/card-carousel_carousel/20251106-award.png", "dist/usa-newsroom/card-carousel_carousel/20251223-award.png", "dist/usa-newsroom/card-carousel_carousel/20260115-printer.png", "dist/usa-newsroom/card-carousel_carousel/20260210-sustainability.png", "dist/usa-newsroom/card-carousel_carousel/20260415-camera.png", "dist/usa-newsroom/card-carousel_carousel/20260504-earth-day-2026.png"], "rte_parbase": ["dist/usa-newsroom/rte_parbase/20230511-camera.png", "dist/usa-newsroom/rte_parbase/20240131-patents.png", "dist/usa-newsroom/rte_parbase/20240216-recognition.png", "dist/usa-newsroom/rte_parbase/20240326-presses.png", "dist/usa-newsroom/rte_parbase/20240528-printer.png", "dist/usa-newsroom/rte_parbase/20240605-firmware.png", "dist/usa-newsroom/rte_parbase/20240724-award.png", "dist/usa-newsroom/rte_parbase/20240813-expo.png", "dist/usa-newsroom/rte_parbase/20240910-printer.png", "dist/usa-newsroom/rte_parbase/20240924-anniversary.png", "dist/usa-newsroom/rte_parbase/20240924-printer.png", "dist/usa-newsroom/rte_parbase/20241220-foundation.png", "dist/usa-newsroom/rte_parbase/20250220-swingrec.png", "dist/usa-newsroom/rte_parbase/20250328-printer.png", "dist/usa-newsroom/rte_parbase/20250403-NAB.png", "dist/usa-newsroom/rte_parbase/20250506-corporate.png", "dist/usa-newsroom/rte_parbase/20250619-turtle.png", "dist/usa-newsroom/rte_parbase/20250630-market-share.png", "dist/usa-newsroom/rte_parbase/20250708-recognition.png", "dist/usa-newsroom/rte_parbase/20250820-award.png", "dist/usa-newsroom/rte_parbase/20251007-yankees.png", "dist/usa-newsroom/rte_parbase/20251106-award.png", "dist/usa-newsroom/rte_parbase/20251223-award.png", "dist/usa-newsroom/rte_parbase/20260105-ces.png", "dist/usa-newsroom/rte_parbase/20260115-printer.png", "dist/usa-newsroom/rte_parbase/20260210-sustainability.png", "dist/usa-newsroom/rte_parbase/20260211-game.png", "dist/usa-newsroom/rte_parbase/20260409-think-board.png", "dist/usa-newsroom/rte_parbase/20260415-camera.png", "dist/usa-newsroom/rte_parbase/20260504-earth-day-2026-1.png", "dist/usa-newsroom/rte_parbase/20260504-earth-day-2026-2.png"], "video": ["dist/usa-newsroom/video/20260504-earth-day-2026.png"]}</script>
+<script>const DIST_BASE = "dist/usa-newsroom";</script>
 <script>
-// ── Table filtering & sorting ────────────────────────────────────────────────
-const rows     = Array.from(document.querySelectorAll('tbody tr[data-comp]'));
-const subRows  = Array.from(document.querySelectorAll('tbody tr.pages-row'));
-const searchEl = document.getElementById('search');
-const countEl  = document.getElementById('visible-count');
-
-function applyFilters() {
-    const q = searchEl.value.toLowerCase();
-    let visible = 0;
-    rows.forEach(row => {
-        const show = !q || row.dataset.comp.toLowerCase().includes(q);
-        row.classList.toggle('hidden', !show);
-        if (show) visible++;
-    });
-    subRows.forEach(row => {
-        const parent = document.querySelector(`tr[data-comp="${row.dataset.parent}"]`);
-        row.classList.toggle('hidden', !parent || parent.classList.contains('hidden'));
-    });
-    countEl.textContent = visible + ' components';
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
-searchEl.addEventListener('input', applyFilters);
 
+// Strip a URL down to its path (+query) for compact display, generically —
+// works for whatever site was crawled rather than one hardcoded domain.
+function shortPath(url) {
+    try { const u = new URL(url); return u.pathname + u.search; } catch { return url; }
+}
+
+// ── Load summary.json and render everything ─────────────────────────────────
+// The report ships as a thin static shell; all data lives in summary.json
+// (high-level breakdown, loaded once) and one {folder}/data.json per
+// component (screenshots, loaded lazily — see openModal below). This means
+// the HTML/CSS/JS here can be edited and reloaded without re-running a crawl,
+// as long as a previous run's dist/ output is still on disk.
+let SUMMARY = null;
 let sortCol = 'pages', sortDir = -1;
+let searchQuery = '';
+
+fetch(`${DIST_BASE}/summary.json`)
+    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(data => { SUMMARY = data; renderAll(); })
+    .catch(err => {
+        document.querySelector('.content').innerHTML =
+            `<p style="color:#b91c1c">Failed to load ${DIST_BASE}/summary.json (${esc(err)}). ` +
+            `Is this report being served over http:// rather than opened as a file?</p>`;
+    });
+
+function renderAll() {
+    document.title = `${SUMMARY.label} — Component Discovery`;
+    document.getElementById('report-title').textContent = `${SUMMARY.label} — Component Discovery`;
+    document.getElementById('report-meta').textContent =
+        `Generated ${SUMMARY.generated} · ${SUMMARY.total_pages} page(s) crawled`;
+    renderChips();
+    renderTable();
+    renderPagesSection();
+}
+
+function renderChips() {
+    const pagesWithData = SUMMARY.page_results.filter(r => r.components.length).length;
+    const totalOcc = SUMMARY.components.reduce((s, c) => s + c.occurrences, 0);
+    document.getElementById('summary-chips').innerHTML = `
+        <div class="chip" style="background:#eff6ff;color:#1e40af;">
+            <span class="chip-num">${SUMMARY.total_pages}</span>
+            <span class="chip-lbl">Pages Crawled</span>
+        </div>
+        <div class="chip" style="background:#f0fdf4;color:#166534;">
+            <span class="chip-num">${pagesWithData}</span>
+            <span class="chip-lbl">Pages with Components</span>
+        </div>
+        <div class="chip" style="background:#f1f5f9;color:#334155;">
+            <span class="chip-num">${SUMMARY.components.length}</span>
+            <span class="chip-lbl">Unique Components</span>
+        </div>
+        <div class="chip" style="background:#fef9c3;color:#854d0e;">
+            <span class="chip-num">${totalOcc}</span>
+            <span class="chip-lbl">Total Occurrences</span>
+        </div>`;
+}
+
+function pageLinkHtml(url) {
+    return `<a href="${esc(url)}" target="_blank" rel="noopener" class="page-link" title="${esc(url)}">${esc(shortPath(url))}</a>`;
+}
+
+// ── Table: filtering & sorting ───────────────────────────────────────────────
+function renderTable() {
+    const tbody = document.querySelector('#comp-table tbody');
+    tbody.innerHTML = '';
+
+    let comps = SUMMARY.components.filter(c => !searchQuery || c.name.toLowerCase().includes(searchQuery));
+    comps = comps.slice().sort((a, b) => {
+        if (sortCol === 'comp') return sortDir * a.name.localeCompare(b.name);
+        const av = sortCol === 'occ' ? a.occurrences : a.pages.length;
+        const bv = sortCol === 'occ' ? b.occurrences : b.pages.length;
+        return sortDir * (av - bv);
+    });
+    document.getElementById('visible-count').textContent = `${comps.length} components`;
+
+    for (const c of comps) {
+        const pct = SUMMARY.total_pages ? (c.pages.length / SUMMARY.total_pages * 100) : 0;
+        const shotBtn = c.shot_count
+            ? `<button class="shot-btn" onclick="openModal('${esc(c.folder)}')">&#128247; ${c.shot_count}</button>`
+            : '';
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="comp-cell">${esc(c.name)}${shotBtn}</td>
+            <td class="num">${c.occurrences}</td>
+            <td class="num">${c.pages.length}</td>
+            <td>
+                <div class="cov-wrap">
+                    <div class="cov-bar-bg"><div class="cov-bar" style="width:${pct.toFixed(1)}%"></div></div>
+                    <span class="cov-pct">${pct.toFixed(0)}%</span>
+                </div>
+            </td>`;
+        tbody.appendChild(row);
+
+        const preview = c.pages.slice(0, 5), extra = c.pages.slice(5);
+        const expand = extra.length
+            ? `<details class="pages-more"><summary>+${extra.length.toLocaleString()} more</summary>
+                 <div class="pages-grid">${extra.map(pageLinkHtml).join('')}</div></details>`
+            : '';
+        const pagesRow = document.createElement('tr');
+        pagesRow.className = 'pages-row';
+        pagesRow.innerHTML = `<td colspan="4"><div class="pages-grid">${preview.map(pageLinkHtml).join('')}</div>${expand}</td>`;
+        tbody.appendChild(pagesRow);
+    }
+
+    const totalOcc = SUMMARY.components.reduce((s, c) => s + c.occurrences, 0);
+    const totalRow = document.createElement('tr');
+    totalRow.className = 'total-row';
+    totalRow.innerHTML = `<td>TOTAL</td><td class="num">${totalOcc}</td><td class="num">${SUMMARY.total_pages}</td><td></td>`;
+    tbody.appendChild(totalRow);
+}
+
+document.getElementById('search').addEventListener('input', e => {
+    searchQuery = e.target.value.toLowerCase();
+    if (SUMMARY) renderTable();
+});
+
 document.querySelectorAll('thead th[data-col]').forEach(th => {
     th.addEventListener('click', () => {
         if (sortCol === th.dataset.col) { sortDir *= -1; }
@@ -412,50 +411,98 @@ document.querySelectorAll('thead th[data-col]').forEach(th => {
         document.querySelectorAll('thead th').forEach(t =>
             t.classList.remove('sorted-asc', 'sorted-desc'));
         th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
-        sortTable();
+        if (SUMMARY) renderTable();
     });
 });
 
-function sortTable() {
-    const tbody    = document.querySelector('tbody');
-    const totalRow = document.querySelector('tr.total-row');
-    rows.slice().sort((a, b) => {
-        if (sortCol === 'comp') return sortDir * a.dataset.comp.localeCompare(b.dataset.comp);
-        return sortDir * ((parseFloat(a.dataset[sortCol]) || 0) - (parseFloat(b.dataset[sortCol]) || 0));
-    }).forEach(row => {
-        tbody.appendChild(row);
-        subRows.filter(sr => sr.dataset.parent === row.dataset.comp)
-               .forEach(sr => tbody.appendChild(sr));
-    });
-    if (totalRow) tbody.appendChild(totalRow);
-    applyFilters();
+// ── Pages section — two accordions ───────────────────────────────────────────
+function renderPagesSection() {
+    const found    = SUMMARY.page_results.filter(r => r.components.length);
+    const notFound = SUMMARY.page_results.filter(r => !r.components.length);
+
+    document.getElementById('found-count').textContent    = `${found.length} page${found.length !== 1 ? 's' : ''}`;
+    document.getElementById('notfound-count').textContent = `${notFound.length} page${notFound.length !== 1 ? 's' : ''}`;
+
+    document.getElementById('found-body').innerHTML = found.length ? found.map(r => `
+        <div class="page-card">
+            <div class="page-card-header">
+                <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(shortPath(r.url))}</a>
+                <span style="color:#64748b;font-size:11px;flex-shrink:0;margin-left:12px">${r.components.length} component(s)</span>
+            </div>
+            <div class="page-card-body">${r.components.map(c => `<span class="comp-tag">${esc(c)}</span>`).join('')}</div>
+        </div>`).join('') : "<p style='color:#94a3b8;font-size:12px'>None</p>";
+
+    document.getElementById('notfound-body').innerHTML = notFound.length
+        ? `<div class="empty-links">${notFound.map(r =>
+            `<a href="${esc(r.url)}" class="empty-link" target="_blank" rel="noopener">${esc(shortPath(r.url))}</a>`).join('')}</div>`
+        : "<p style='color:#94a3b8;font-size:12px'>None</p>";
 }
 
 // ── Screenshot modal ─────────────────────────────────────────────────────────
-const SCREENSHOTS = JSON.parse(document.getElementById('screenshot-data').textContent);
+// Opens straight into a thumbnail grid of every screenshot for the component;
+// clicking a thumbnail switches to a single-image viewer (prev/next, and a
+// link to the live page it was captured from) starting at that image. Each
+// component's screenshot list is only fetched the first time its modal is
+// opened, then cached, so the report doesn't pay for data it never displays.
 const modal       = document.getElementById('screenshot-modal');
-const modalImg    = modal.querySelector('.modal-img');
 const modalTitle  = modal.querySelector('.modal-title');
+const modalGrid   = modal.querySelector('.modal-grid');
+const modalViewer = modal.querySelector('.modal-viewer');
+const modalImg    = modal.querySelector('.modal-img');
 const modalCap    = modal.querySelector('.modal-caption');
+const modalPageLink = modal.querySelector('.modal-page-link');
 const modalCtr    = modal.querySelector('.modal-counter');
 const modalPrev   = modal.querySelector('.modal-prev');
 const modalNext   = modal.querySelector('.modal-next');
 
+const _dataCache = {};
 let _images = [], _idx = 0;
 
-function openModal(folder) {
-    _images = SCREENSHOTS[folder] || [];
-    if (!_images.length) return;
-    _idx = 0;
-    modalTitle.textContent = folder.replace(/_/g, ' ');
-    _renderModal();
-    modal.removeAttribute('hidden');
+function loadComponentData(folder) {
+    if (_dataCache[folder]) return Promise.resolve(_dataCache[folder]);
+    return fetch(`${DIST_BASE}/${folder}/data.json`)
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => { _dataCache[folder] = d.shots; return d.shots; });
 }
 
-function _renderModal() {
-    const src = _images[_idx];
-    modalImg.src = src;
-    modalCap.textContent = src.split('/').pop().replace(/\.png$/i, '');
+function openModal(folder) {
+    modalTitle.textContent = folder.replace(/_/g, ' ');
+    modalGrid.innerHTML = "<p style='color:#94a3b8;font-size:12px;padding:8px;'>Loading…</p>";
+    modalGrid.hidden = false;
+    modalViewer.hidden = true;
+    modal.removeAttribute('hidden');
+
+    loadComponentData(folder).then(shots => {
+        _images = shots;
+        _showGrid();
+    }).catch(err => {
+        modalGrid.innerHTML = `<p style="color:#b91c1c;font-size:12px;padding:8px;">Failed to load screenshots (${esc(err)})</p>`;
+    });
+}
+
+function _showGrid() {
+    modalGrid.innerHTML = _images.map((img, i) => `
+        <button class="thumb-item" onclick="openViewer(${i})">
+            <img src="${esc(img.thumb)}" alt="${esc(img.caption)}" loading="lazy">
+            <span class="thumb-cap">${esc(img.caption)}</span>
+        </button>`).join('');
+    modalGrid.hidden = false;
+    modalViewer.hidden = true;
+}
+
+function openViewer(i) {
+    _idx = i;
+    _renderViewer();
+    modalGrid.hidden = true;
+    modalViewer.hidden = false;
+}
+
+function _renderViewer() {
+    const img = _images[_idx];
+    modalImg.src = img.full;
+    modalCap.textContent = img.caption;
+    modalPageLink.href = img.url;
+    modalPageLink.textContent = 'View page ↗ ' + shortPath(img.url);
     modalCtr.textContent = `${_idx + 1} / ${_images.length}`;
     modalPrev.disabled = _idx === 0;
     modalNext.disabled = _idx === _images.length - 1;
@@ -463,8 +510,10 @@ function _renderModal() {
 
 function modalNav(dir) {
     _idx = Math.max(0, Math.min(_images.length - 1, _idx + dir));
-    _renderModal();
+    _renderViewer();
 }
+
+function backToGrid() { _showGrid(); }
 
 function closeModal() { modal.setAttribute('hidden', ''); }
 
@@ -472,9 +521,14 @@ modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
 document.addEventListener('keydown', e => {
     if (modal.hasAttribute('hidden')) return;
-    if (e.key === 'Escape')      closeModal();
-    if (e.key === 'ArrowLeft')   modalNav(-1);
-    if (e.key === 'ArrowRight')  modalNav(1);
+    if (e.key === 'Escape') {
+        if (!modalViewer.hidden) backToGrid();
+        else closeModal();
+    }
+    if (!modalViewer.hidden) {
+        if (e.key === 'ArrowLeft')  modalNav(-1);
+        if (e.key === 'ArrowRight') modalNav(1);
+    }
 });
 </script>
 </body>
