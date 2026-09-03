@@ -19,14 +19,6 @@
       { "selector": "[data-content-type='html']", "name": "html" }
     ]
   },
-  "ca-overview": {
-    "label": "CA — Product Overview Sections",
-    "sitemap": "https://shop.canon.ca/sitemap.xml",
-    "url_filter": "/shop/p/",
-    "container": "#overview-product",
-    "component_root": ".pagebuilder-column-group",
-    "mode": "elements"
-  },
   "usa-consumer-1": {
     "label": "USA — Consumer - Part 1",
     "sitemap": "https://www.usa.canon.com/content/canon/en.sitemap.consumer.xml",
